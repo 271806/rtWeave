@@ -35,7 +35,8 @@ class hittable {
         // r:ray
         // ray_tmin, ray_tmax: the range of t value of the ray
         // rec: hit_record
-        virtual bool hit (const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const = 0;
+        // ! Deprecated: virtual bool hit (const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const = 0;
+        virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
         // * `= 0` means this function is a pure virtual function, which means this function must be implemented in the derived class
 
 };
