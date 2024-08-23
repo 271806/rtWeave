@@ -3,6 +3,7 @@
 
 #include "hittable.h"
 // #include "vec3.h"
+#include "rtweekend.h"
 
 
 // sphere class
