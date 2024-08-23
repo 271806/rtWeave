@@ -40,7 +40,11 @@ class sphere : public hittable {
             // if root is in the acceptable range, record the hit point and normal
             rec.t = root; // t value
             rec.p = r.at(rec.t); // hit point coordinate
-            rec.normal = (rec.p - center) / radius; // normal = (hitpoint - center) / radius (for a sphere)
+            // rec.normal = (rec.p - center) / radius; // normal = (hitpoint - center) / radius (for a sphere)
+            // * normal at the hit point (without front face check)
+            vec3 outward_normal = (rec.p - center) / radius; // outward normal
+            // * use set_face_normal from hit_record to set the normal's direction
+            rec.set_face_normal(r, outward_normal); // set the face normal
 
             return true; // * return true if hit
         }
