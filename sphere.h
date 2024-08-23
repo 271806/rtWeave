@@ -15,7 +15,7 @@ class sphere : public hittable {
 
         // check if the ray hits the sphere, if hit, return the record
         // if hit: true, else: false
-        bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const override {
+        bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
             vec3 oc = center - r.origin(); // vector from ray origin to the center of the sphere
             
             // * simplified dicriminant calculation
@@ -32,9 +32,18 @@ class sphere : public hittable {
 
             // Find the nearest root that lies in the acceptable range.
             auto root = (h - sqrtd) / a; // * root_smaller
-            if (root <= ray_tmin || root >= ray_tmax) {
+            // ! Deprecated (not using the interval class)
+            // if (root <= ray_tmin || root >= ray_tmax) {
+            //     root = (h + sqrtd) / a; // * try root_larger
+            //     if (root <= ray_tmin || root >= ray_tmax)
+            //         return false; // * return false if both roots are out of range
+            // }
+            // ! Deprecated end
+
+            // * using interval class
+            if (!ray_t.surrounds(root)) {
                 root = (h + sqrtd) / a; // * try root_larger
-                if (root <= ray_tmin || root >= ray_tmax)
+                if (!ray_t.surrounds(root))
                     return false; // * return false if both roots are out of range
             }
 

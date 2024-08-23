@@ -32,18 +32,18 @@ class hittable_list : public hittable {
 
         // check if the ray hits the object in the list
         // if hit: true, then record the hit info
-        bool hit(const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const override {
+        bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
             hit_record temp_rec; // temporary hit record
             bool hit_anything = false; // flag for if hit or not
 
             // tmax is the maximum t value of the ray
             // * record the closest hit point
-            auto closest_so_far = ray_tmax; // initialize the closest_so_far to the maximum t value
+            auto closest_so_far = ray_t.max; // initialize the closest_so_far to the maximum t value
 
             // loop through all the objects in the list
             for (const auto& object : objects) {
                 // if the ray hits the object
-                if (object->hit(r, ray_tmin, closest_so_far, temp_rec)) {
+                if (object->hit(r, interval(ray_t.min, closest_so_far), temp_rec)) {
                     hit_anything = true; // set the hit flag to true
                     closest_so_far = temp_rec.t; // update the closest_so_far to the t value of the hit point
                     rec = temp_rec; // update the hit record
