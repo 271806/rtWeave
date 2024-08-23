@@ -1,7 +1,6 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include "ray.h" // include ray.h for ray class
 
 // hit_record is use for recording the hit point and normal of the object
 class hit_record {

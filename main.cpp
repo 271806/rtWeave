@@ -1,46 +1,14 @@
-#include "vec3.h"
-#include "color.h"
-#include "ray.h"
+#include "rtweekend.h"
 
-# include <iostream>
+#include "hittable.h"
+#include "hittable_list.h"
+#include "sphere.h"
 
-// ray sphere intersection check
-double hit_sphere(const point3& center, double radius, const ray& r) {
-    // vector from ray origin to the center of the sphere
-    vec3 oc = center - r.origin();
-    // ! Deprecated (basic calculate the discriminant)
-    // * a, b, c in quadratic equation
-    // auto a = dot(r.direction(), r.direction());
-    // auto b = -2.0 * dot(r.direction(), oc);
-    // auto c = dot(oc, oc) - radius * radius;
-    // * discriminant (for determining the number of solutions)
-    // auto discriminant = b * b - 4 * a * c;
-    // ! Deprecated end
-
-    // * simplified dicriminant calculation
-    auto a = r.direction().length_squared();
-    auto h = dot(r.direction(), oc);
-    auto c = oc.length_squared() - radius * radius;
-    auto discriminant = h * h - a * c;
-
-
-    // ! Deprecated (only calculate if hit)
-    // return (discriminant >= 0); // * if the discriminant is non-negative (True), there is a solution
-    // ! Deprecated end
-
-    if (discriminant < 0) {
-        return -1.0; // * no solution
-    } else {
-        // return (-b - std::sqrt(discriminant)) / (2.0 * a); // * return the smaller solution (closer to the camera)
-        return (h - std::sqrt(discriminant)) / a; // * return the smaller solution (closer to the camera)
-    }
-
-}
 
 
 // return the ray_color
 // * (now always black)
-color ray_color(const ray& r) {
+color ray_color(const ray& r, const hittable& world) {
     // ! Deprecated (always return color) 
     // return color(0, 0, 0.5);
     // ! Deprecated end
@@ -51,15 +19,22 @@ color ray_color(const ray& r) {
     // }  
     // ! Deprecated end
 
+    hit_record rec;
+    if (world.hit(r, 0, infinity, rec)) {
+        return 0.5 * (rec.normal + color(1, 1, 1)); // * normal to color
+    }
+
+    // ! Deprecated
     // * if hit, return the color of the sphere
     // get t's value when the ray hits the sphere
-    auto t = hit_sphere(point3(0, 0, -1), 0.5, r);
-    if (t > 0.0) {
+    // auto t = hit_sphere(point3(0, 0, -1), 0.5, r);
+    // if (t > 0.0) {
         // get sphere surface normal(hitpiont - center)
-        vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
+    //     vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
         // return the color of the sphere (scale the normal's xyz to color rgb)
-        return 0.5 * color(N.x() + 1, N.y() + 1, N.z() + 1);
-    }
+    //     return 0.5 * color(N.x() + 1, N.y() + 1, N.z() + 1);
+    // }
+    // ! Deprecated end
 
     // * if not hit, return the background color
     vec3 unit_direction = unit_vector(r.direction());
@@ -81,6 +56,13 @@ int main() {
     // calculate the height of the image, ensure that it is at least 1.
     int image_height = int(image_width / aspect_ratio);
     image_height = (image_height < 1) ? 1 : image_height;
+
+
+    // * World
+    hittable_list world;
+    // add the sphere to the world
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
     // Camera
     auto focal_length = 1.0;
@@ -131,7 +113,7 @@ int main() {
             auto ray_direction = pixel_center - camera_center; // * the direction of the ray through this pixel
             ray r(camera_center, ray_direction); // ray direction is not unit vector (easier)
 
-            color pixel_color = ray_color(r); // * the color of the pixel
+            color pixel_color = ray_color(r, world); // * the color of the pixel
             write_color(std::cout, pixel_color);
         }
     }

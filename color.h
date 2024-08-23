@@ -3,8 +3,6 @@
 
 #include "vec3.h"
 
-#include <iostream>
-
 using color = vec3;
 
 // define a function that writes the color values to the output stream

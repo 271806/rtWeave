@@ -1,8 +1,8 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-#include <cmath>
-#include <iostream>
+// #include <cmath>
+// #include <iostream>
 
 //  ------------define a class 'vec3' that represents a 3D vector------------
 
