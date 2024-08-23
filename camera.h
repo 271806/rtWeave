@@ -121,7 +121,10 @@ class camera {
             hit_record rec;
 
             if (world.hit(r, interval(0, infinity), rec)) {
-                return 0.5 * (rec.normal + color(1,1,1)); // * normal to color
+                // return 0.5 * (rec.normal + color(1,1,1)); // * normal to color
+                vec3 direction = random_on_hemisphere(rec.normal); // * random direction on the hemisphere
+                return 0.5 * // * reflect 50% of the light (color)
+                    ray_color(ray(rec.p, direction), world); // * recursive ray tracing
             }
 
             // * if not hit, return the background color
