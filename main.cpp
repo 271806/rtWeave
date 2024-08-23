@@ -8,14 +8,21 @@
 double hit_sphere(const point3& center, double radius, const ray& r) {
     // vector from ray origin to the center of the sphere
     vec3 oc = center - r.origin();
-
+    // ! Deprecated (basic calculate the discriminant)
     // * a, b, c in quadratic equation
-    auto a = dot(r.direction(), r.direction());
-    auto b = -2.0 * dot(r.direction(), oc);
-    auto c = dot(oc, oc) - radius * radius;
-
+    // auto a = dot(r.direction(), r.direction());
+    // auto b = -2.0 * dot(r.direction(), oc);
+    // auto c = dot(oc, oc) - radius * radius;
     // * discriminant (for determining the number of solutions)
-    auto discriminant = b * b - 4 * a * c;
+    // auto discriminant = b * b - 4 * a * c;
+    // ! Deprecated end
+
+    // * simplified dicriminant calculation
+    auto a = r.direction().length_squared();
+    auto h = dot(r.direction(), oc);
+    auto c = oc.length_squared() - radius * radius;
+    auto discriminant = h * h - a * c;
+
 
     // ! Deprecated (only calculate if hit)
     // return (discriminant >= 0); // * if the discriminant is non-negative (True), there is a solution
@@ -24,7 +31,8 @@ double hit_sphere(const point3& center, double radius, const ray& r) {
     if (discriminant < 0) {
         return -1.0; // * no solution
     } else {
-        return (-b - std::sqrt(discriminant)) / (2.0 * a); // * return the smaller solution (closer to the camera)
+        // return (-b - std::sqrt(discriminant)) / (2.0 * a); // * return the smaller solution (closer to the camera)
+        return (h - std::sqrt(discriminant)) / a; // * return the smaller solution (closer to the camera)
     }
 
 }
