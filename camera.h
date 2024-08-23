@@ -13,6 +13,8 @@ class camera {
         int image_width = 100; // Rendered image width in pixel count
         // * for anti-aliasing
         int samples_per_pixel = 10; // Count of random samples for each pixel
+        // * for recursive ray tracing
+        int max_depth = 10; // Maximum depth of recursive ray tracing
 
 
         void render(const hittable& world) {
@@ -29,7 +31,7 @@ class camera {
                     // * anti-aliasing, mutiple samples per pixel, accumulate the color
                     for (int sample = 0; sample < samples_per_pixel; sample++) {
                         ray r = get_ray(i, j); // generate a ray through the pixel with random offset
-                        pixel_color += ray_color(r, world); // calculate & accumulate the color
+                        pixel_color += ray_color(r, max_depth, world); // calculate & accumulate the color
                     }
 
 
@@ -117,14 +119,18 @@ class camera {
             return vec3(random_double() - 0.5, random_double() - 0.5, 0);
         }
 
-        color ray_color(const ray& r, const hittable& world) const {
+        color ray_color(const ray& r, int depth, const hittable& world) const {
+            // * If we've exceeded the ray bounce limit, no more light is gathered.
+            if (depth <= 0)
+                return color(0, 0, 0);
+
             hit_record rec;
 
             if (world.hit(r, interval(0, infinity), rec)) {
                 // return 0.5 * (rec.normal + color(1,1,1)); // * normal to color
                 vec3 direction = random_on_hemisphere(rec.normal); // * random direction on the hemisphere
                 return 0.5 * // * reflect 50% of the light (color)
-                    ray_color(ray(rec.p, direction), world); // * recursive ray tracing
+                    ray_color(ray(rec.p, direction), depth - 1, world); // * recursive ray tracing
             }
 
             // * if not hit, return the background color
