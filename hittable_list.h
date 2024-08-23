@@ -3,13 +3,16 @@
 
 #include "hittable.h"
 
-// ? learn more about how to use
-#include <memory> // include memory for shared_ptr
+// ? learn more about how to use below (features of C++)
+// ? check for https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere, section 6.6. (version 4.0.0)
+// #include <memory> // include memory for shared_ptr
 #include <vector> // include vector for std::vector
 
-
-using std::shared_ptr;
-using std::make_shared; 
+// ? the using statements in listing 21 tell the compiler that we'll be getting shared_ptr and make_shared from the std library,
+// ? so we don't need to prefix these with std:: every time we reference them.
+// ! Deprecated (include in rtweekend.h)
+// using std::shared_ptr;
+// using std::make_shared; 
 
 class hittable_list : public hittable {
     public:
