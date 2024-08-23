@@ -4,19 +4,62 @@
 
 # include <iostream>
 
+// ray sphere intersection check
+double hit_sphere(const point3& center, double radius, const ray& r) {
+    // vector from ray origin to the center of the sphere
+    vec3 oc = center - r.origin();
+
+    // * a, b, c in quadratic equation
+    auto a = dot(r.direction(), r.direction());
+    auto b = -2.0 * dot(r.direction(), oc);
+    auto c = dot(oc, oc) - radius * radius;
+
+    // * discriminant (for determining the number of solutions)
+    auto discriminant = b * b - 4 * a * c;
+
+    // ! Deprecated (only calculate if hit)
+    // return (discriminant >= 0); // * if the discriminant is non-negative (True), there is a solution
+    // ! Deprecated end
+
+    if (discriminant < 0) {
+        return -1.0; // * no solution
+    } else {
+        return (-b - std::sqrt(discriminant)) / (2.0 * a); // * return the smaller solution (closer to the camera)
+    }
+
+}
+
+
 // return the ray_color
 // * (now always black)
 color ray_color(const ray& r) {
-    // ! Deprecated (testing color)
+    // ! Deprecated (always return color) 
     // return color(0, 0, 0.5);
     // ! Deprecated end
 
+    // ! Deprecated (only return when the ray hits the sphere)
+    // if (hit_sphere(point3(0, 0, -1), 0.5, r)) {
+    //     return color(0, 0, 1);
+    // }  
+    // ! Deprecated end
+
+    // * if hit, return the color of the sphere
+    // get t's value when the ray hits the sphere
+    auto t = hit_sphere(point3(0, 0, -1), 0.5, r);
+    if (t > 0.0) {
+        // get sphere surface normal(hitpiont - center)
+        vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
+        // return the color of the sphere (scale the normal's xyz to color rgb)
+        return 0.5 * color(N.x() + 1, N.y() + 1, N.z() + 1);
+    }
+
+    // * if not hit, return the background color
     vec3 unit_direction = unit_vector(r.direction());
-    // * scale the y component to [0, 1], unit_direction is in the range of [-1, 1], a is in the range of [0, 1]
+    // scale the y component to [0, 1], unit_direction is in the range of [-1, 1], a is in the range of [0, 1]
     auto a = 0.5 * (unit_direction.y() + 1.0); 
     // blendedvalue (or, liner interpolation) of white and blue
     // * (1 - a) * white + a * blue
-    return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.7, 0.5, 1.0);
+    return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
 }
 
 
@@ -25,7 +68,7 @@ int main() {
     // * Image
 
     auto aspect_ratio = 16.0 / 9.0;
-    int image_width = 400;
+    int image_width = 2400;
 
     // calculate the height of the image, ensure that it is at least 1.
     int image_height = int(image_width / aspect_ratio);
