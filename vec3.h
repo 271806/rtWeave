@@ -3,6 +3,7 @@
 
 // #include <cmath>
 // #include <iostream>
+#include "rtweekend.h"
 
 //  ------------define a class 'vec3' that represents a 3D vector------------
 

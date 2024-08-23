@@ -2,6 +2,8 @@
 #define HITTABLE_LIST_H
 
 #include "hittable.h"
+#include "rtweekend.h"
+
 
 // ? learn more about how to use below (features of C++)
 // ? check for https://raytracing.github.io/books/RayTracingInOneWeekend.html#addingasphere, section 6.6. (version 4.0.0)

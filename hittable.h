@@ -1,6 +1,7 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
+#include "rtweekend.h"
 
 // hit_record is use for recording the hit point and normal of the object
 class hit_record {
