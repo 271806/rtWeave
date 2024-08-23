@@ -1,11 +1,13 @@
 #include "rtweekend.h"
 
+#include "camera.h"
 #include "hittable.h"
 #include "hittable_list.h"
 #include "sphere.h"
 
 
-
+// ! Deprecated (ray_color, refactored)
+/*
 // return the ray_color
 // * (now always black)
 color ray_color(const ray& r, const hittable& world) {
@@ -44,10 +46,14 @@ color ray_color(const ray& r, const hittable& world) {
     // * (1 - a) * white + a * blue
     return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
 }
+*/
+// ! Deprecated end
 
 
 int main() {
 
+    // ! Deprecated (refactored)
+    /*
     // * Image
 
     auto aspect_ratio = 16.0 / 9.0;
@@ -119,4 +125,20 @@ int main() {
     }
 
     std::clog << "\nDone.                 \n";
+    */
+   // ! Deprecated end
+
+    // * new, using the new camera class
+    hittable_list world;
+
+    // add objects to the world
+    world.add(make_shared<sphere>(point3(0,0,-1), 0.5));
+    world.add(make_shared<sphere>(point3(0,-100.5,-1), 100));
+
+    camera cam;
+    
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 2400;
+
+    cam.render(world);
 }
