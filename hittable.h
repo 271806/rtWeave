@@ -9,6 +9,19 @@ class hit_record {
         point3 p; // hit point
         vec3 normal; // normal of the object
         double t; // t value of the hit point
+        // * record if the hit point is in the front face of the object
+        bool front_face; // front face of the object // * refer other liturature for more information (or alternative implementation)
+
+        void set_face_normal(const ray& r, const vec3& outward_normal) {
+            // Sets the hit record normal vector.
+            // * NOTE: the parameter `outward_normal` is assumed to have unit length.
+
+            // * if the dot product of the ray direction and the outward normal is less than 0, the hit point is in the front face
+            front_face = dot(r.direction(), outward_normal) < 0;
+
+            // if is front face, the normal is the outward normal, otherwise, the normal is the negative of the outward normal
+            normal = front_face ? outward_normal : -outward_normal;
+        }
 };
 
 
