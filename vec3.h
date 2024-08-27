@@ -168,4 +168,22 @@ inline vec3 reflect(const vec3& v, const vec3& n) {
     return v - 2 * dot(v, n) * n;
 }
 
+inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
+    // calculate the cos(theta) of the angle between the ray and the normal
+    // -uv represents the direction of the ray (opposite direction), dot(-uv, n) calculate the dot product
+    // use std::fmin to prevent the cos(theta) from being greater than 1 (floating point error)
+    auto cos_theta = std::fmin(dot(-uv, n), 1.0);
+
+    // calculate the perpendicular component of the ray
+    // ? check the formula in the book (onweekend 11.2 Snell's Law)
+    vec3 r_out_perp = etai_over_etat * (uv + cos_theta * n);
+
+    // calculate the parallel component of the ray
+    // std::sqrt is used to calculate the sin(theta) of the angle between the ray and the normal
+    // std::fabs is used to calculate the absolute value of the sin(theta)
+    vec3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())) * n;
+
+    return r_out_perp + r_out_parallel; // * return the refracted ray (perpendicular + parallel)
+}
+
 #endif
