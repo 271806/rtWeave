@@ -41,7 +41,7 @@ class lambertian : public material {
                 // if the scatter direction is near zero, set it to the normal
                 // to prevent the scatter direction to be zero
                 scatter_direction = rec.normal;
-            scattered = ray(rec.p, scatter_direction);
+            scattered = ray(rec.p, scatter_direction, r_in.time());
 
             attenuation = albedo;
 
@@ -63,7 +63,7 @@ class metal : public material {
         const override {
             vec3 reflected = reflect(r_in.direction(), rec.normal); // reflected ray
             reflected = unit_vector(reflected) + (fuzz * random_unit_vector()); // add fuzziness
-            scattered = ray(rec.p, reflected);
+            scattered = ray(rec.p, reflected, r_in.time());
             attenuation = albedo;
             return (dot(scattered.direction(), rec.normal) > 0);
         }
@@ -108,7 +108,7 @@ class dielectric : public material {
 
             // Generate the refracted ray, with the origin at the intersection point rec.p, and direction as the calculated refraction direction
             // * refracted only in situation that the ray can be refracted, else, the ray is reflected
-            scattered = ray(rec.p, direction);
+            scattered = ray(rec.p, direction, r_in.time());
 
             return true; // return true, means the ray is scattered (refracted)
         }
