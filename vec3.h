@@ -62,6 +62,12 @@ class vec3 {
         return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
     }
 
+    bool near_zero() const {
+        // return true if the vector is close to zero in all dimensions
+        auto s = 1e-8;
+        return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+    }
+
 
     // * random vector generatation for diffuse materials
     static vec3 random() {

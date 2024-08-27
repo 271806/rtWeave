@@ -11,7 +11,9 @@ class sphere : public hittable {
     public:
         // initialize the sphere with center and radius
         // std::fmax(0, radius) is used to prevent negative radius
-        sphere(const point3& center, double radius) : center(center), radius(std::fmax(0, radius)) {}
+        sphere(const point3& center, double radius) : center(center), radius(std::fmax(0, radius)) {
+            // TODO: initialize the material pointer 'mat'.
+        }
 
         // check if the ray hits the sphere, if hit, return the record
         // if hit: true, else: false
@@ -55,6 +57,7 @@ class sphere : public hittable {
             vec3 outward_normal = (rec.p - center) / radius; // outward normal
             // * use set_face_normal from hit_record to set the normal's direction
             rec.set_face_normal(r, outward_normal); // set the face normal
+            rec.mat = mat; // set the material
 
             return true; // * return true if hit
         }
@@ -62,6 +65,7 @@ class sphere : public hittable {
     private:
         point3 center;
         double radius;
+        shared_ptr<material> mat; // material of the sphere
 };
 
 #endif
