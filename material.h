@@ -118,6 +118,17 @@ class dielectric : public material {
         // Refractive index in vacuum or air, or the ratio of the material's refractive index over
         // the refractive index of the enclosing media
         double refraction_index;
+
+        static double reflectance(double cosine, double refraction_index) {
+            // * Use Schlick's approximation for reflectance
+            // * Schlick's approximation is used to calculate the reflectance of the material
+            // * The reflectance is calculated based on the angle between the ray and the normal
+            // * and the refractive index of the material
+            // ? check rtoneweekend 11.4. Schlick's approximation
+            auto r0 = (1 - refraction_index) / (1 + refraction_index);
+            r0 = r0 * r0;
+            return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+        }
 };
 
 #endif
