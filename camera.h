@@ -146,7 +146,7 @@ class camera {
             auto a = 0.5*(unit_direction.y() + 1.0);
             // blendedvalue (or, liner interpolation) of white and blue
             // * (1 - a) * white + a * blue
-            return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.7, 0.3, 1.0);
+            return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
     }
 };
 
