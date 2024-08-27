@@ -11,9 +11,7 @@ class sphere : public hittable {
     public:
         // initialize the sphere with center and radius
         // std::fmax(0, radius) is used to prevent negative radius
-        sphere(const point3& center, double radius) : center(center), radius(std::fmax(0, radius)) {
-            // TODO: initialize the material pointer 'mat'.
-        }
+        sphere(const point3& center, double radius, shared_ptr<material> mat) : center(center), radius(std::fmax(0, radius)), mat(mat) {}
 
         // check if the ray hits the sphere, if hit, return the record
         // if hit: true, else: false
