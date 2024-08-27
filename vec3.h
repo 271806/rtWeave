@@ -142,6 +142,14 @@ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
+inline vec3 random_in_unit_disk() {
+    while (true) {
+        auto p = vec3(random_double(-1, 1), random_double(-1, 1), 0); // 2D plane z = 0
+        if (p.length_squared() < 1)
+            return p;
+    }
+}
+
 // * rejection method for random vector generation
 // * delete point outside the unit sphere is to make sure the vector's distribution is uniform
 inline vec3 random_in_unit_sphere() {
