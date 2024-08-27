@@ -9,13 +9,27 @@
 // sphere class
 class sphere : public hittable {
     public:
+        // TODO: make stationary and moving spheres class the same (if not moving, center2 = center1)
+        // * Stationary Sphere
+        sphere(const point3& center, double radius, shared_ptr<material> mat)
+         : center1(center), radius(std::fmax(0, radius)), mat(mat), is_moving(false) {}
+
+        // * Moving Sphere
+        sphere(const point3& center1, const point3& center2, double radius,
+               shared_ptr<material> mat)
+         : center1(center1), radius(std::fmax(0,radius)), mat(mat), is_moving(true)
+        {
+            center_vec = center2 - center1; // calculate the vector from center1 to center2 (moving vector)
+        }
+
         // initialize the sphere with center and radius
         // std::fmax(0, radius) is used to prevent negative radius
-        sphere(const point3& center, double radius, shared_ptr<material> mat) : center(center), radius(std::fmax(0, radius)), mat(mat) {}
+        // sphere(const point3& center, double radius, shared_ptr<material> mat) : center(center), radius(std::fmax(0, radius)), mat(mat) {}
 
         // check if the ray hits the sphere, if hit, return the record
         // if hit: true, else: false
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+            point3 center = is_moving ? sphere_center(r.time()) : center1; // get the center of the sphere
             vec3 oc = center - r.origin(); // vector from ray origin to the center of the sphere
             
             // * simplified dicriminant calculation
@@ -61,9 +75,18 @@ class sphere : public hittable {
         }
 
     private:
-        point3 center;
+        point3 center1;
+        // point3 center;
         double radius;
         shared_ptr<material> mat; // material of the sphere
+        bool is_moving;
+        vec3 center_vec;
+
+        point3 sphere_center(double time) const {
+            // Linearly interpolate from center1 to center2 according to time, where t=0 yields
+            // center1, and t=1 yields center2.
+            return center1 + time * center_vec;
+        }
 };
 
 #endif
