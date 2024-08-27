@@ -93,9 +93,22 @@ class dielectric : public material {
             double ri = rec.front_face ? (1.0 / refraction_index) : refraction_index; // refractive index ratio
 
             vec3 unit_direction = unit_vector(r_in.direction()); // unit direction of the incoming ray
-            vec3 refracted = refract(unit_direction, rec.normal, ri); // refracted ray
+
+            double cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0); // cos(theta) of the angle between the ray and the normal
+            double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta); // sin(theta) of the angle between the ray and the normal
+
+            // ? check rtoneweekend 11.3. total internal reflection
+            bool cannot_refract = ri * sin_theta > 1.0; // whether the ray can be refracted
+            vec3 direction;
+
+            if (cannot_refract)
+                direction = reflect(unit_direction, rec.normal); // reflected ray
+            else
+                direction = refract(unit_direction, rec.normal, ri); // refracted ray
+
             // Generate the refracted ray, with the origin at the intersection point rec.p, and direction as the calculated refraction direction
-            scattered = ray(rec.p, refracted);
+            // * refracted only in situation that the ray can be refracted, else, the ray is reflected
+            scattered = ray(rec.p, direction);
 
             return true; // return true, means the ray is scattered (refracted)
         }
