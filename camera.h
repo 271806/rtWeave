@@ -4,6 +4,7 @@
 #include "rtweekend.h"
 
 #include "hittable.h"
+#include "material.h"
 
 // camera class
 class camera {
@@ -127,6 +128,8 @@ class camera {
             hit_record rec;
 
             if (world.hit(r, interval(0.001, infinity), rec)) {
+                
+                /* temporily hide
                 // return 0.5 * (rec.normal + color(1,1,1)); // * normal to color
                 // * random direction on the hemisphere (most basic diffuse material model)
                 // vec3 direction = random_on_hemisphere(rec.normal);
@@ -138,6 +141,19 @@ class camera {
                 vec3 direction = rec.normal + random_unit_vector();
                 return 0.7 * // * reflect XX% of the light (color)
                     ray_color(ray(rec.p, direction), depth - 1, world); // * recursive ray tracing
+                */
+               
+                // * scatter the ray
+                ray scattered;
+                color attenuation;
+                // determine if the ray is scattered
+                if (rec.mat->scatter(r, rec, attenuation, scattered))
+                    // if the ray is scattered, return the scattered ray's color,
+                    // multiply the attenuation
+                    // it means the ray is scattered, and the color is attenuated
+                    return attenuation * ray_color(scattered, depth - 1, world);
+                // if the ray is not scattered, return black means no light is gathered
+                return color(0, 0, 0);
             }
 
             // * if not hit, return the background color
