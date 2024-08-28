@@ -17,6 +17,8 @@ class camera {
         int samples_per_pixel = 10; // Count of random samples for each pixel
         // * for recursive ray tracing
         int max_depth = 10; // Maximum depth of recursive ray tracing
+
+        color background; // Scene background color
         
         double vfov = 90; // Vertical field-of-view in degrees
 
@@ -168,7 +170,28 @@ class camera {
 
             hit_record rec;
 
-            if (world.hit(r, interval(0.001, infinity), rec)) {
+            // If the ray doesn't hit anything, return the background color.
+            if (!world.hit(r, interval(0.001, infinity), rec))
+                return background;
+
+            ray scattered;
+            color attenuation;
+            // Calculate the color emitted by the material at the hit point.
+            color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+
+            // If the material doesn't scatter the ray, return the emitted color.
+            if (!rec.mat->scatter(r, rec, attenuation, scattered))
+                return color_from_emission;
+
+            // Recursively compute the color from the scattered ray, multiplied by the attenuation factor.
+            color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+
+            // Return the sum of the emitted color and the scattered color.
+            return color_from_emission + color_from_scatter;
+
+            // * uncomment the following code to see previous implementation (skybox as background)
+            // // -------------------------------------------------------------
+            // if (world.hit(r, interval(0.001, infinity), rec)) {
                 
                 /* temporily hide
                 // return 0.5 * (rec.normal + color(1,1,1)); // * normal to color
@@ -184,26 +207,28 @@ class camera {
                     ray_color(ray(rec.p, direction), depth - 1, world); // * recursive ray tracing
                 */
                
-                // * scatter the ray
-                ray scattered;
-                color attenuation;
-                // determine if the ray is scattered
-                if (rec.mat->scatter(r, rec, attenuation, scattered))
-                    // if the ray is scattered, return the scattered ray's color,
-                    // multiply the attenuation
-                    // it means the ray is scattered, and the color is attenuated
-                    return attenuation * ray_color(scattered, depth - 1, world);
-                // if the ray is not scattered, return black means no light is gathered
-                return color(0, 0, 0);
-            }
+            //     // * scatter the ray
+            //     ray scattered;
+            //     color attenuation;
+            //     // determine if the ray is scattered
+            //     if (rec.mat->scatter(r, rec, attenuation, scattered))
+            //         // if the ray is scattered, return the scattered ray's color,
+            //         // multiply the attenuation
+            //         // it means the ray is scattered, and the color is attenuated
+            //         return attenuation * ray_color(scattered, depth - 1, world);
+            //     // if the ray is not scattered, return black means no light is gathered
+            //     return color(0, 0, 0);
+            // }
 
-            // * if not hit, return the background color
-            vec3 unit_direction = unit_vector(r.direction());
-            // scale the y component to [0, 1], unit_direction is in the range of [-1, 1], a is in the range of [0, 1]
-            auto a = 0.5*(unit_direction.y() + 1.0);
-            // blendedvalue (or, liner interpolation) of white and blue
-            // * (1 - a) * white + a * blue
-            return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+
+            // // * if not hit, return the background color
+            // vec3 unit_direction = unit_vector(r.direction());
+            // // scale the y component to [0, 1], unit_direction is in the range of [-1, 1], a is in the range of [0, 1]
+            // auto a = 0.5*(unit_direction.y() + 1.0);
+            // // blendedvalue (or, liner interpolation) of white and blue
+            // // * (1 - a) * white + a * blue
+            // return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+            // -------------------------------------------------------------
     }
 };
 
