@@ -7,6 +7,7 @@ check out the alternate-2D-primitives tag in the source repository. This has sol
 #include "rtweekend.h"
 
 #include "hittable.h"
+#include "hittable_list.h"
 
 class quad : public hittable {
     public:
@@ -94,5 +95,32 @@ class quad : public hittable {
         vec3 normal;
         double D;
 };
+
+// * 3D box (axis-aligned)
+inline shared_ptr<hittable_list> box(const point3& a, const point3& b, shared_ptr<material> mat)
+{
+    // Return a 3D box (six faces) defined by two diagonal vertices a and b.
+
+    auto sides = make_shared<hittable_list>();
+
+    // Calculate the minimum and maximum coordinates of the two diagonal vertices of the box.
+    auto min = point3(std::fmin(a.x(),b.x()), std::fmin(a.y(),b.y()), std::fmin(a.z(),b.z()));
+    auto max = point3(std::fmax(a.x(),b.x()), std::fmax(a.y(),b.y()), std::fmax(a.z(),b.z()));
+
+    // Calculate the three axis vectors dx, dy, dz, representing the width, height, and depth of the box.
+    auto dx = vec3(max.x() - min.x(), 0, 0);
+    auto dy = vec3(0, max.y() - min.y(), 0);
+    auto dz = vec3(0, 0, max.z() - min.z());
+
+    // Add six quads representing each side of the box to the hittable_list.
+    sides->add(make_shared<quad>(point3(min.x(), min.y(), max.z()),  dx,  dy, mat)); // front face
+    sides->add(make_shared<quad>(point3(max.x(), min.y(), max.z()), -dz,  dy, mat)); // right face
+    sides->add(make_shared<quad>(point3(max.x(), min.y(), min.z()), -dx,  dy, mat)); // back face
+    sides->add(make_shared<quad>(point3(min.x(), min.y(), min.z()),  dz,  dy, mat)); // left face
+    sides->add(make_shared<quad>(point3(min.x(), max.y(), max.z()),  dx, -dz, mat)); // top face
+    sides->add(make_shared<quad>(point3(min.x(), min.y(), min.z()),  dx,  dz, mat)); // bottom face
+
+    return sides;
+}
 
 #endif
