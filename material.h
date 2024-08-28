@@ -4,6 +4,8 @@
 #include "rtweekend.h"
 #include "hittable.h"
 
+#include "texture.h"
+
 class hit_record; // will be used in the material class
 
 class material {
@@ -30,8 +32,15 @@ class material {
 // define the lambertian material
 class lambertian : public material {
     public:
+        // * constructor for texutre
+        // take a color and convert it to a solid color texture
+        lambertian(const color& albedo) : tex(make_shared<solid_color>(albedo)) {}
+
+        // take a shared_ptr of texture
+        lambertian(shared_ptr<texture> tex) : tex(tex) {}
+
         // initialize the lambertian material with albedo
-        lambertian(const color& albedo) : albedo(albedo) {} // constructor with albedo
+        // lambertian(const color& albedo) : albedo(albedo) {} // constructor with albedo
         
         bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
         const override {
@@ -43,13 +52,16 @@ class lambertian : public material {
                 scatter_direction = rec.normal;
             scattered = ray(rec.p, scatter_direction, r_in.time());
 
-            attenuation = albedo;
+            // attenuation = albedo;
+            // * Use the texture's value method to get the color at that point as the attenuation value.
+            attenuation = tex->value(rec.u, rec.v, rec.p);
 
             return true;
         }
     
     private:
-        color albedo; // albedo of the material
+        // color albedo; // albedo of the material
+        shared_ptr<texture> tex; // texture of the material
 };
 
 

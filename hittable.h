@@ -14,6 +14,8 @@ class hit_record {
         vec3 normal; // normal of the object
         shared_ptr<material> mat; // material of the object
         double t; // t value of the hit point
+        double u; // u coordinate of the hit point
+        double v; // v coordinate of the hit point
         // * record if the hit point is in the front face of the object
         bool front_face; // front face of the object // * refer other liturature for more information (or alternative implementation)
 
