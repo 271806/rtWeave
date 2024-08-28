@@ -9,7 +9,8 @@ class perlin {
     perlin() {
         // Initialize the random float array with random double values.
         for (int i = 0; i < point_count; i++) {
-            randfloat[i] = random_double();
+            // randfloat[i] = random_double(); // Generate a random double value and store it in the array.
+            randvec[i] = unit_vector(vec3::random(-1, 1)); // Generate a random unit vector and store it in the array.
         }
 
         // Generate permutation arrays for x, y, and z dimensions.
@@ -37,9 +38,9 @@ class perlin {
         auto w = p.z() - std::floor(p.z());
 
         // Improvement with Hermitian Smoothing (use a Hermite cubic to round off the interpolation)
-        u = u*u*(3-2*u);
-        v = v*v*(3-2*v);
-        w = w*w*(3-2*w);
+        // u = u*u*(3-2*u);
+        // v = v*v*(3-2*v);
+        // w = w*w*(3-2*w);
 
         // Compute the unit cube's integer corner coordinates i, j, k
         auto i = int(std::floor(p.x()));
@@ -47,25 +48,48 @@ class perlin {
         auto k = int(std::floor(p.z()));
 
         // Initialize a 3D array c to store the random values at the cube's corners
-        double c[2][2][2];
+        vec3 c[2][2][2];
+
+        // Initialize a 3D array c to store the random values at the cube's corners
+        // double c[2][2][2];
 
         // Loop through the 8 corners of the unit cube
         for (int di=0; di < 2; di++)
             for (int dj=0; dj < 2; dj++)
                 for (int dk=0; dk < 2; dk++)
-                    c[di][dj][dk] = randfloat[
+                    c[di][dj][dk] = randvec[
                         perm_x[(i+di) & 255] ^
                         perm_y[(j+dj) & 255] ^
                         perm_z[(k+dk) & 255]
                     ];
         
         // * Perform trilinear interpolation to get a smooth noise value within the unit cube
-        return trilinear_interp(c, u, v, w);
+        // return trilinear_interp(c, u, v, w);
+        // *use random vector instead of random float
+        return perlin_interp(c, u, v, w);
+    }
+
+
+    // Turbulence
+    // ? Go check rtwk_the next week section 5.6. for details
+    double turb(const point3& p, int depth) const {
+        auto accum = 0.0;
+        auto temp_p = p;
+        auto weight = 1.0;
+
+        for (int i = 0; i < depth; i++) {
+            accum += weight * noise(temp_p);
+            weight *= 0.5;
+            temp_p *= 2;
+        }
+
+        return std::fabs(accum);
     }
 
   private:
     static const int point_count = 256; // Constant representing the number of points (256).
-    double randfloat[point_count];  // Array to store random float values.
+    // double randfloat[point_count];  // Array to store random float values.
+    vec3 randvec[point_count];  // Array to store random unit vectors.
     int perm_x[point_count];  // Permutation array for the x dimension.
     int perm_y[point_count];  // Permutation array for the y dimension.
     int perm_z[point_count];  // Permutation array for the z dimension.
@@ -109,6 +133,25 @@ class perlin {
                         * c[i][j][k]; // Multiply the corner's random value by its weight
 
         return accum; // Return the final interpolated result
+    }
+
+    static double perlin_interp(const vec3 c[2][2][2], double u, double v, double w) {
+        auto uu = u*u*(3-2*u);
+        auto vv = v*v*(3-2*v);
+        auto ww = w*w*(3-2*w);
+        auto accum = 0.0;
+
+        for (int i=0; i < 2; i++)
+            for (int j=0; j < 2; j++)
+                for (int k=0; k < 2; k++) {
+                    vec3 weight_v(u-i, v-j, w-k);
+                    accum += (i*uu + (1-i)*(1-uu))
+                            * (j*vv + (1-j)*(1-vv))
+                            * (k*ww + (1-k)*(1-ww))
+                            * dot(c[i][j][k], weight_v);
+                }
+
+        return accum;
     }
 };
 

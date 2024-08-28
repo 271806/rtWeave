@@ -98,12 +98,16 @@ class image_texture : public texture { // * image texture from image file
 
 class noise_texture : public texture {
     public:
-        noise_texture() {}
+        noise_texture(double scale) : scale(scale) {}
 
         color value (double u, double v, const point3& p) const override {
-            return color(1,1,1) * noise.noise(p); // * return different level of grey color
+            // return color(1,1,1) * noise.noise(scale * p); // * return different level of grey color (scaled)
+            // return color(1,1,1) * 0.5 * (1.0 + noise.noise(scale * p)); // * return use improved noise function
+            // return color(1,1,1) * noise.turb(p, 7); // * use turbulence
+            return color(0.5, 0.5, 0.5) * (1 + std::sin(scale * p.z() + 10 * noise.turb(p, 7))); // * noise texture with marbled texture
         }
     private:
         perlin noise;
+        double scale;
 };
 #endif
