@@ -12,13 +12,22 @@ class sphere : public hittable {
         // TODO: make stationary and moving spheres class the same (if not moving, center2 = center1)
         // * Stationary Sphere
         sphere(const point3& center, double radius, shared_ptr<material> mat)
-         : center1(center), radius(std::fmax(0, radius)), mat(mat), is_moving(false) {}
+         : center1(center), radius(std::fmax(0, radius)), mat(mat), is_moving(false) {
+            auto rvec = vec3(radius, radius, radius); // a vector represent the radius on x, y, z axis
+            bbox = aabb(center - rvec, center + rvec); // bounding box of the sphere, defining the box with two points
+         }
 
         // * Moving Sphere
         sphere(const point3& center1, const point3& center2, double radius,
                shared_ptr<material> mat)
          : center1(center1), radius(std::fmax(0,radius)), mat(mat), is_moving(true)
         {
+            auto rvec = vec3(radius, radius, radius); // a vector represent the radius on x, y, z axis
+            aabb box1(center1 - rvec, center1 + rvec); // bounding box of the sphere at time 0
+            aabb box2(center2 - rvec, center2 + rvec); // bounding box of the sphere at time 1
+
+            bbox = aabb(box1, box2); // bounding box of the sphere, defining the box with two bounding boxes
+            
             center_vec = center2 - center1; // calculate the vector from center1 to center2 (moving vector)
         }
 
@@ -74,6 +83,10 @@ class sphere : public hittable {
             return true; // * return true if hit
         }
 
+        aabb bounding_box() const override {
+            return bbox;
+        }
+
     private:
         point3 center1;
         // point3 center;
@@ -81,6 +94,7 @@ class sphere : public hittable {
         shared_ptr<material> mat; // material of the sphere
         bool is_moving;
         vec3 center_vec;
+        aabb bbox;
 
         point3 sphere_center(double time) const {
             // Linearly interpolate from center1 to center2 according to time, where t=0 yields

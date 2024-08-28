@@ -1,6 +1,7 @@
 #ifndef HITTABLE_LIST_H
 #define HITTABLE_LIST_H
 
+#include "aabb.h"
 #include "hittable.h"
 #include "rtweekend.h"
 
@@ -28,6 +29,7 @@ class hittable_list : public hittable {
 
         void add(shared_ptr<hittable> object) { 
             objects.push_back(object); // add a shared_ptr of hittable object to the objects vector
+            bbox = aabb(bbox, object->bounding_box()); // update the bounding box
         }
 
         // check if the ray hits the object in the list
@@ -52,6 +54,13 @@ class hittable_list : public hittable {
 
             return hit_anything; // return the hit flag
         }
+
+        aabb bounding_box() const override {
+            return bbox; // return the bounding box
+        }
+    
+    private:
+        aabb bbox; // bounding box
 
 };
 

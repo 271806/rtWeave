@@ -5,6 +5,10 @@
 #include "hittable_list.h"
 #include "sphere.h"
 #include "material.h"
+#include "bvh.h"
+
+#include <iostream>
+#include <chrono>
 
 
 // ! Deprecated (ray_color, refactored)
@@ -129,6 +133,9 @@ int main() {
     */
     // ! Deprecated end
 
+    // * start time record
+    auto start = std::chrono::high_resolution_clock::now();
+
     // * create a list of objects
     hittable_list world;
 
@@ -198,12 +205,14 @@ int main() {
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
+    world = hittable_list(make_shared<bvh_node>(world)); // * create a bvh tree
+
 
     camera cam;
     
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
-    cam.samples_per_pixel = 20;
+    cam.image_width = 1200;
+    cam.samples_per_pixel = 50;
     cam.max_depth = 50;
     
     cam.vfov = 20;
@@ -215,4 +224,11 @@ int main() {
     cam.focus_dist = 10.0;
 
     cam.render(world);
+
+    // * end time record
+    auto end = std::chrono::high_resolution_clock::now();
+
+    // * calculate the duration
+    std::chrono::duration<double, std::milli> duration = end - start;
+    std::cerr << "Rendering Time with BVH (basic, aabb): " << duration.count() << " ms\n";
 }

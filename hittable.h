@@ -2,6 +2,7 @@
 #define HITTABLE_H
 
 #include "rtweekend.h"
+#include "aabb.h"
 
 
 class material; // forward declaration of material class
@@ -42,6 +43,8 @@ class hittable {
         // ! Deprecated: virtual bool hit (const ray& r, double ray_tmin, double ray_tmax, hit_record& rec) const = 0;
         virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
         // * `= 0` means this function is a pure virtual function, which means this function must be implemented in the derived class
+
+        virtual aabb bounding_box() const = 0; // for bvhtree
 
 };
 
