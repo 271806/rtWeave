@@ -6,6 +6,7 @@
 #include "sphere.h"
 #include "material.h"
 #include "bvh.h"
+#include "texture.h"
 
 #include <iostream>
 #include <chrono>
@@ -162,8 +163,11 @@ int main() {
 
 
 
-    auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-    world.add(make_shared<sphere>(point3(0,-1000,0), 1000, ground_material));
+    // auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+    // world.add(make_shared<sphere>(point3(0,-1000,0), 1000, ground_material));
+
+    auto checker = make_shared<checker_texture>(0.32, color(.2, .3, .1), color(.9, .9, .9));
+    world.add(make_shared<sphere>(point3(0,-1000,0), 1000, make_shared<lambertian>(checker)));
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
@@ -211,8 +215,8 @@ int main() {
     camera cam;
     
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
-    cam.samples_per_pixel = 20;
+    cam.image_width = 800;
+    cam.samples_per_pixel = 10;
     cam.max_depth = 50;
     
     cam.vfov = 20;
