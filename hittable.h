@@ -50,4 +50,118 @@ class hittable {
 
 };
 
+class translate : public hittable {
+    public:
+        // Constructor: takes an object and an offset, initializes the translate object
+        translate(shared_ptr<hittable> object, const vec3& offset)
+        : object(object), offset(offset)
+        {
+            // Calculate the bounding box of the translated object
+            bbox = object->bounding_box() + offset;
+        }
+
+
+        // check the ray object intersection
+        bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+            // * Translate the ray by the offset vector and check for intersection with the object.
+            ray offset_r(r.origin() - offset, r.direction(), r.time());
+
+            // Check if there is an intersection along the offset ray
+            // (if there is an intersection, determine the position of the intersection)
+            if (!object->hit(offset_r, ray_t, rec))
+                return false;
+
+            // Move the intersection point forward by the offset distance to place it on the path of the original ray
+            rec.p += offset; // * update the hit point
+
+            return true;
+        }
+
+        aabb bounding_box() const override {
+            return bbox;
+        }
+
+    private:
+        shared_ptr<hittable> object; // * object to be translated
+        vec3 offset; // * offset of the translation
+        aabb bbox; // * bounding box of the translated object
+};
+
+class rotate_y : public hittable {
+    public:
+        rotate_y(shared_ptr<hittable> object, double angle) : object(object) {
+        auto radians = degrees_to_radians(angle);
+        sin_theta = std::sin(radians);
+        cos_theta = std::cos(radians);
+        bbox = object->bounding_box();
+
+        point3 min( infinity,  infinity,  infinity);
+        point3 max(-infinity, -infinity, -infinity);
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 2; k++) {
+                    auto x = i*bbox.x.max + (1-i)*bbox.x.min;
+                    auto y = j*bbox.y.max + (1-j)*bbox.y.min;
+                    auto z = k*bbox.z.max + (1-k)*bbox.z.min;
+
+                    auto newx =  cos_theta*x + sin_theta*z;
+                    auto newz = -sin_theta*x + cos_theta*z;
+
+                    vec3 tester(newx, y, newz);
+
+                    for (int c = 0; c < 3; c++) {
+                        min[c] = std::fmin(min[c], tester[c]);
+                        max[c] = std::fmax(max[c], tester[c]);
+                    }
+                }
+            }
+        }
+
+        bbox = aabb(min, max);
+    }
+    
+
+        bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+            // Change the ray from world space to object space
+            auto origin = r.origin();
+            auto direction = r.direction();
+
+            origin[0] = cos_theta*r.origin()[0] - sin_theta*r.origin()[2];
+            origin[2] = sin_theta*r.origin()[0] + cos_theta*r.origin()[2];
+
+            direction[0] = cos_theta*r.direction()[0] - sin_theta*r.direction()[2];
+            direction[2] = sin_theta*r.direction()[0] + cos_theta*r.direction()[2];
+
+            ray rotated_r(origin, direction, r.time());
+
+            // Determine whether an intersection exists in object space (and if so, where)
+            if (!object->hit(rotated_r, ray_t, rec))
+                return false;
+
+            // Change the intersection point from object space to world space
+            auto p = rec.p;
+            p[0] =  cos_theta*rec.p[0] + sin_theta*rec.p[2];
+            p[2] = -sin_theta*rec.p[0] + cos_theta*rec.p[2];
+
+            // Change the normal from object space to world space
+            auto normal = rec.normal;
+            normal[0] =  cos_theta*rec.normal[0] + sin_theta*rec.normal[2];
+            normal[2] = -sin_theta*rec.normal[0] + cos_theta*rec.normal[2];
+
+            rec.p = p;
+            rec.normal = normal;
+
+            return true;
+        }
+
+        aabb bounding_box() const override { return bbox; }
+    
+    private:
+        shared_ptr<hittable> object;
+        double sin_theta;
+        double cos_theta;
+        aabb bbox;
+};
+
 #endif
