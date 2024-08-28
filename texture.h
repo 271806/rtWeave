@@ -2,6 +2,7 @@
 #define TEXTURE_H
 
 #include "rtweekend.h"
+#include "rtw_stb_image.h"
 
 class texture {
     public:
@@ -61,6 +62,37 @@ class checker_texture : public texture {
         double inv_scale; // inverse scale, to control the size of the checker pattern
         shared_ptr<texture> odd; // texture for the odd part of the checker pattern
         shared_ptr<texture> even; // texture for the even part of the checker pattern
+};
+
+class image_texture : public texture { // * image texture from image file
+    public:
+        // take image file path and load the image
+        image_texture(const char* filename) : image(filename) {}
+
+
+        // value method, return the color value of the image texture based on the uv coordinates and hit point p
+        color value(double u, double v, const point3& p) const override {
+            // If we have no texture data, then return solid cyan as a debugging aid.
+            if (image.height() <= 0) return color(0,1,1);
+
+            // Clamp input texture coordinates to [0,1] x [1,0]
+            u = interval(0,1).clamp(u);
+            v = 1.0 - interval(0,1).clamp(v);  // Flip V to image coordinates
+
+            // caluclate the pixel coordinate based on the uv coordinates
+            auto i = int(u * image.width());
+            auto j = int(v * image.height());
+
+            // get RGB values of the pixel
+            auto pixel = image.pixel_data(i,j);
+
+            // scale the RGB values to [0,1]
+            auto color_scale = 1.0 / 255.0;
+            return color(color_scale*pixel[0], color_scale*pixel[1], color_scale*pixel[2]);
+        }
+
+    private:
+        rtw_image image; // use rtw_image to store the image data
 };
 
 #endif
