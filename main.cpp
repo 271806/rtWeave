@@ -56,7 +56,7 @@ color ray_color(const ray& r, const hittable& world) {
 // ! Deprecated end
 
 
-int main() {
+void bouncing_spheres() {
 
     // ! Deprecated (refactored)
     /*
@@ -134,8 +134,6 @@ int main() {
     */
     // ! Deprecated end
 
-    // * start time record
-    auto start = std::chrono::high_resolution_clock::now();
 
     // * create a list of objects
     hittable_list world;
@@ -215,7 +213,7 @@ int main() {
     camera cam;
     
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 800;
+    cam.image_width = 400;
     cam.samples_per_pixel = 10;
     cam.max_depth = 50;
     
@@ -228,6 +226,43 @@ int main() {
     cam.focus_dist = 10.0;
 
     cam.render(world);
+}
+
+
+void checkered_spheres() {
+    hittable_list world;
+
+    auto checker = make_shared<checker_texture>(0.32, color(.2, .3, .1), color(.9, .9, .9));
+
+    world.add(make_shared<sphere>(point3(0,-10, 0), 10, make_shared<lambertian>(checker)));
+    world.add(make_shared<sphere>(point3(0, 10, 0), 10, make_shared<lambertian>(checker)));
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 20;
+    cam.lookfrom = point3(13,2,3);
+    cam.lookat   = point3(0,0,0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
+
+    cam.render(world);
+}
+
+int main() {
+    // * start time record
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    // * Scene Setting
+    switch(2) {
+        case 1: bouncing_spheres(); break;
+        case 2: checkered_spheres(); break;
+    }
 
     // * end time record
     auto end = std::chrono::high_resolution_clock::now();
