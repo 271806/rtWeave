@@ -13,6 +13,10 @@ class material {
         // virtual
         virtual ~material() = default;
 
+        virtual color emitted(double u, double v, const point3& p) const {
+            return color(0, 0, 0); // return black color by default
+        }
+
 
         // * scatter the ray
         // r_in: the incoming ray
@@ -141,6 +145,24 @@ class dielectric : public material {
             r0 = r0 * r0;
             return r0 + (1 - r0) * std::pow((1 - cosine), 5);
         }
+};
+
+class diffuse_light : public  material {
+    public:
+        // * constructor for texture
+        diffuse_light(shared_ptr<texture> tex) : tex(tex) {}
+
+        // * constructor for color, create a solid color texture
+        diffuse_light(const color& emit) : tex(make_shared<solid_color>(emit)) {}
+
+        // * emiited function, returns the emission color of the material at the given point
+        color emitted(double u, double v, const point3& p) const  override {
+            return tex->value(u, v, p);
+        }
+
+
+    private:
+        shared_ptr<texture> tex;
 };
 
 #endif
