@@ -18,8 +18,14 @@ class bvh_node : public hittable { // * define bvh node representation from hitt
         // persist the resulting bounding volume hierarchy.
 
         bvh_node(std::vector<shared_ptr<hittable>>& objects, size_t start, size_t end) {
-            // TODO: implement later
-            int axis = random_int(0, 2); // randomly choose an axis (0, 1, 2): (x, y, z)
+            // Build the bounding box of the span of source objects
+            bbox = aabb::empty;
+            for (size_t object_index = start; object_index < end; object_index++) {
+                bbox = aabb(bbox, objects[object_index]->bounding_box());
+            }
+            
+            // int axis = random_int(0, 2); // randomly choose an axis (0, 1, 2): (x, y, z)
+            int axis = bbox.longest_axis(); // choose the longest axis of the bounding box
             
             // compare function for sorting the objects (based on the specified axis)
             auto comparator = (axis == 0) ? box_x_compare
@@ -42,8 +48,8 @@ class bvh_node : public hittable { // * define bvh node representation from hitt
                 right = make_shared<bvh_node>(objects, mid, end); // recursively build the right child
             }
 
-            // combine the bounding box of the left and right child to get the bounding box of the current node
-            bbox = aabb(left->bounding_box(), right->bounding_box());
+            // ! Deprecated: combine the bounding box of the left and right child to get the bounding box of the current node
+            // bbox = aabb(left->bounding_box(), right->bounding_box());
         }
 
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
