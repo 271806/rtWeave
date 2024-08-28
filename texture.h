@@ -3,6 +3,7 @@
 
 #include "rtweekend.h"
 #include "rtw_stb_image.h"
+#include "perlin.h"
 
 class texture {
     public:
@@ -95,4 +96,14 @@ class image_texture : public texture { // * image texture from image file
         rtw_image image; // use rtw_image to store the image data
 };
 
+class noise_texture : public texture {
+    public:
+        noise_texture() {}
+
+        color value (double u, double v, const point3& p) const override {
+            return color(1,1,1) * noise.noise(p); // * return different level of grey color
+        }
+    private:
+        perlin noise;
+};
 #endif
