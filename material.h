@@ -165,4 +165,28 @@ class diffuse_light : public  material {
         shared_ptr<texture> tex;
 };
 
+class isotropic : public material {
+  public:
+    // Constructor that initializes the texture with a solid color
+    isotropic(const color& albedo) : tex(make_shared<solid_color>(albedo)) {}
+
+    // Constructor that initializes the texture with a given texture
+    isotropic(shared_ptr<texture> tex) : tex(tex) {}
+
+    // Scatter function: simulates isotropic scattering
+    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+    const override {
+        // Scatter the ray in a random direction
+        scattered = ray(rec.p, random_unit_vector(), r_in.time());
+        
+        // Attenuate the ray based on the texture's color at the hit point
+        attenuation = tex->value(rec.u, rec.v, rec.p);
+        
+        return true;
+    }
+
+  private:
+    shared_ptr<texture> tex;  // The texture that defines the material's color or pattern
+};
+
 #endif
