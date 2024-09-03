@@ -2,6 +2,7 @@
 #define MATERIAL_H
 
 #include "rtweekend.h"
+#include "onb.h"
 #include "hittable.h"
 
 #include "texture.h"
@@ -25,11 +26,16 @@ class material {
         // scattered: the scattered ray
         // return: whether the ray is scattered
         virtual bool scatter(
-            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+            const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, double& pdf
         ) const {
             return false; // return false by default, means no scattering
         }
 
+        virtual double scattering_pdf(
+            const ray& r_in, const hit_record& rec, const ray& scattered
+        ) const {
+            return 0; // return 0 by default
+        }
 };
 
 
@@ -46,21 +52,48 @@ class lambertian : public material {
         // initialize the lambertian material with albedo
         // lambertian(const color& albedo) : albedo(albedo) {} // constructor with albedo
         
-        bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+        bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, double& pdf)
         const override {
-            auto scatter_direction = rec.normal + random_unit_vector();
+            // auto scatter_direction = rec.normal + random_unit_vector();
+            // ! Test: Generate a random direction on the hemisphere centered around the surface normal
+            // auto scatter_direction = random_on_hemisphere(rec.normal);
+            // ---
 
-            if (scatter_direction.near_zero())
-                // if the scatter direction is near zero, set it to the normal
-                // to prevent the scatter direction to be zero
-                scatter_direction = rec.normal;
-            scattered = ray(rec.p, scatter_direction, r_in.time());
+            // Create an ONB (Orthonormal Basis) using the surface normal from the hit record
+            onb uvw(rec.normal);
+
+            // Generate a random scatter direction in the local coordinate system
+            // and transform it to the world coordinate system using the ONB
+            auto scatter_direction = uvw.transform(random_cosine_direction());
+            
+            // Create the scattered ray with the calculated direction
+            scattered = ray(rec.p, unit_vector(scatter_direction), r_in.time());
+
+            // if (scatter_direction.near_zero())
+            //     // if the scatter direction is near zero, set it to the normal
+            //     // to prevent the scatter direction to be zero
+            //     scatter_direction = rec.normal;
+            // scattered = ray(rec.p, scatter_direction, r_in.time());
 
             // attenuation = albedo;
             // * Use the texture's value method to get the color at that point as the attenuation value.
             attenuation = tex->value(rec.u, rec.v, rec.p);
 
+            // Calculate the PDF value for the scattered ray based on the cosine-weighted hemisphere
+            pdf = dot(uvw.w(), scattered.direction()) / pi;
+
             return true;
+        }
+
+        double scattering_pdf(
+            const ray& r_in, const hit_record& rec, const ray& scattered
+        ) const override {
+        //     auto cos_theta = dot(rec.normal, unit_vector(scattered.direction()));
+        //     // If the cosine of the angle between the normal and scattered direction is negative,
+        //     // which is backward scattering occurs
+        //     // return 0 (no scattering); otherwise, return the value of cos(theta)/pi
+        //     return cos_theta < 0 ? 0 : cos_theta / pi;
+            return 1 / (2*pi); // ! Test: Uniform distribution over the hemisphere
         }
     
     private:
@@ -75,7 +108,7 @@ class metal : public material {
         // fuzziness is in 0 to 1
         metal(const color& albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
-        bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+        bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, double& pdf)
         const override {
             vec3 reflected = reflect(r_in.direction(), rec.normal); // reflected ray
             reflected = unit_vector(reflected) + (fuzz * random_unit_vector()); // add fuzziness
@@ -98,7 +131,7 @@ class dielectric : public material {
         dielectric(double refraction_index) : refraction_index(refraction_index) {}
 
         // * rewrite the scatter function, describe the scattering of the dielectric material (infact is refraction)
-        bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+        bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, double& pdf)
         const override {
             // attenuation settings
             attenuation = color(1.0, 1.0, 1.0); // 1 means no attenuation, means the material is transparent (glass, water, etc.)
@@ -174,15 +207,22 @@ class isotropic : public material {
     isotropic(shared_ptr<texture> tex) : tex(tex) {}
 
     // Scatter function: simulates isotropic scattering
-    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered, double& pdf)
     const override {
         // Scatter the ray in a random direction
         scattered = ray(rec.p, random_unit_vector(), r_in.time());
         
         // Attenuate the ray based on the texture's color at the hit point
         attenuation = tex->value(rec.u, rec.v, rec.p);
+        pdf = 1.0 / (4 * pi); // Set the PDF value to 1/(4*pi) for isotropic scattering
         
         return true;
+    }
+
+    double scattering_pdf(
+        const ray& r_in, const hit_record& rec, const ray& scattered
+    ) const override {
+        return 1.0 / (4 * pi); // Set the PDF value to 1/(4*pi) for isotropic scattering
     }
 
   private:

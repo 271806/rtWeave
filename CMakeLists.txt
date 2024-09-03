@@ -10,3 +10,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # add executable
 add_executable(raytracing main.cpp)
 add_executable(estimate_halfway math/estimate_halfway.cpp)
+add_executable(sphere_plot math/sphere_plot.cpp)

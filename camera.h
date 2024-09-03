@@ -200,15 +200,32 @@ class camera {
 
             ray scattered;
             color attenuation;
+            double pdf_value;
             // Calculate the color emitted by the material at the hit point.
             color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
 
             // If the material doesn't scatter the ray, return the emitted color.
-            if (!rec.mat->scatter(r, rec, attenuation, scattered))
+            if (!rec.mat->scatter(r, rec, attenuation, scattered, pdf_value))
                 return color_from_emission;
 
+            // * naive implementation
             // Recursively compute the color from the scattered ray, multiplied by the attenuation factor.
-            color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+            // color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+
+            // * Calculate the scattering PDF value
+            double scattering_pdf = rec.mat -> scattering_pdf(r, rec, scattered);
+            pdf_value = scattering_pdf;
+            
+            // * Test: Instead of using the scattering PDF, we use a uniform PDF over the hemisphere.
+            // Instead of using the scattering PDF, we use a uniform PDF over the hemisphere.
+            // This means that we assume equal probability for all directions in the hemisphere.
+            // double pdf_value = 1 / (2*pi);
+
+            // * Compute the color from the scattered ray, multiply by the attenuation and the PDF
+            // * The result is divided by the PDF to correctly normalize the color contribution
+            color color_from_scatter = 
+                (attenuation * scattering_pdf * ray_color(scattered, depth - 1, world)) / pdf_value;
+
 
             // Return the sum of the emitted color and the scattered color.
             return color_from_emission + color_from_scatter;
