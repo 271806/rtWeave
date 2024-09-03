@@ -47,6 +47,15 @@ class hittable {
         // * `= 0` means this function is a pure virtual function, which means this function must be implemented in the derived class
 
         virtual aabb bounding_box() const = 0; // for bvhtree
+        
+        virtual double pdf_value(const point3& origin, const vec3& direction
+        ) const {
+            return 0.0;
+        }
+
+        virtual vec3 random(const vec3& origin) const {
+            return vec3(1, 0, 0);
+        }
 
 };
 

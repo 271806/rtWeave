@@ -4,6 +4,7 @@
 #include "rtweekend.h"
 
 #include "hittable.h"
+#include "pdf.h"
 #include "material.h"
 #include "vec3.h"
 
@@ -208,42 +209,51 @@ class camera {
             if (!rec.mat->scatter(r, rec, attenuation, scattered, pdf_value))
                 return color_from_emission;
 
-            // * Light sampling
-            // Randomly pick a point on the light source within specified x and z ranges
-            auto on_light = point3(random_double(213,343), 554, random_double(227,332));
+            
+            cosine_pdf surface_pdf(rec.normal);
+            scattered = ray(rec.p, surface_pdf.generate(), r.time());
+            pdf_value = surface_pdf.value(scattered.direction());
 
-            // Calculate the vector from the hit point to the selected point on the light
-            auto to_light = on_light - rec.p;
-
-            // Compute the square of the distance between the hit point and the light source
-            auto distance_squared = to_light.length_squared();
-
-            // Normalize the 'to_light' vector to get a unit direction vector
-            to_light = unit_vector(to_light);
-
-            // Check if the light is facing away from the surface (dot product is negative)
-            // If the light is facing away, return only the emitted color (no contribution from the light)
-            if (dot(to_light, rec.normal) < 0)
-                return color_from_emission;
-
-            // Calculate the area of the light source
-            double light_area = (343-213)*(332-227);
-
-            // Calculate the cosine of the angle between the light direction and the light's normal (y-axis)
-            auto light_cosine = std::fabs(to_light.y());
-
-            // If the cosine is too small, return only the emitted color (light contribution is negligible)
-            if (light_cosine < 0.000001)
-                return color_from_emission;
-
-            // Compute the PDF value for sampling the light source
-            pdf_value = distance_squared / (light_cosine * light_area);
-
-            // Create the scattered ray pointing from the hit point to the light source
-            scattered = ray(rec.p, to_light, r.time());
-
-            // Compute the scattering PDF for the scattered ray
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
+
+            // ! Deprecated (previous implementation)
+
+            // // * Light sampling
+            // // Randomly pick a point on the light source within specified x and z ranges
+            // auto on_light = point3(random_double(213,343), 554, random_double(227,332));
+
+            // // Calculate the vector from the hit point to the selected point on the light
+            // auto to_light = on_light - rec.p;
+
+            // // Compute the square of the distance between the hit point and the light source
+            // auto distance_squared = to_light.length_squared();
+
+            // // Normalize the 'to_light' vector to get a unit direction vector
+            // to_light = unit_vector(to_light);
+
+            // // Check if the light is facing away from the surface (dot product is negative)
+            // // If the light is facing away, return only the emitted color (no contribution from the light)
+            // if (dot(to_light, rec.normal) < 0)
+            //     return color_from_emission;
+
+            // // Calculate the area of the light source
+            // double light_area = (343-213)*(332-227);
+
+            // // Calculate the cosine of the angle between the light direction and the light's normal (y-axis)
+            // auto light_cosine = std::fabs(to_light.y());
+
+            // // If the cosine is too small, return only the emitted color (light contribution is negligible)
+            // if (light_cosine < 0.000001)
+            //     return color_from_emission;
+
+            // // Compute the PDF value for sampling the light source
+            // pdf_value = distance_squared / (light_cosine * light_area);
+
+            // // Create the scattered ray pointing from the hit point to the light source
+            // scattered = ray(rec.p, to_light, r.time());
+
+            // // Compute the scattering PDF for the scattered ray
+            // double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
 
             // * naive implementation
             // Recursively compute the color from the scattered ray, multiplied by the attenuation factor.

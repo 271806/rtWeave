@@ -18,6 +18,8 @@ class quad : public hittable {
             D = dot(Q, normal); // * D = dot(Q, n)
             w = n / dot(n, n); // * w = n / dot(n, n)
             
+            area = n.length(); // * area of the quad
+
             set_bouding_box();
         }
 
@@ -85,6 +87,30 @@ class quad : public hittable {
             return true;
         }
 
+        // Override the pdf_value function to calculate the probability density function value
+        double pdf_value(const point3& origin, const vec3& direction) const override {
+            hit_record rec;
+            // Check if the ray from origin in the given direction hits the quad
+            if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec))
+                return 0;
+
+            // Calculate the square of the distance from the origin to the hit point
+            auto distance_squared = rec.t * rec.t * direction.length_squared();
+            // Calculate the cosine of the angle between the direction and the normal at the hit point
+            auto cosine = std::fabs(dot(direction, rec.normal) / direction.length());
+
+            // Return the PDF value based on distance, cosine, and the area of the quad
+            return distance_squared / (cosine * area);
+        }
+
+        // Override the random function to generate a random point on the quad relative to the origin
+        vec3 random(const point3& origin) const override {
+            // Randomly select a point on the quad using u and v vectors
+            auto p = Q + (random_double() * u) + (random_double() * v);
+            return p - origin; // Return the vector from the origin to the random point on the quad
+        }
+
+
     private:
         point3 Q; // * origin of the quad
         vec3 u, v; // * two vectors that define the quad
@@ -94,6 +120,8 @@ class quad : public hittable {
         
         vec3 normal;
         double D;
+        
+        double area;
 };
 
 // * 3D box (axis-aligned)
