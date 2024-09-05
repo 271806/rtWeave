@@ -13,3 +13,6 @@ Current: Book2 finished.
 - update quad to includes more shape
 - add feature: input triangle meshes
 - add directional light
+
+
+- save point 01: right after book3's implementation
