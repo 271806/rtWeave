@@ -442,6 +442,7 @@ void cornell_box() {
 
     cam.defocus_angle = 0;
 
+    // cam.render_mt(world, lights);
     cam.render(world, lights);
 }
 

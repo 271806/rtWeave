@@ -8,6 +8,8 @@
 #include "material.h"
 #include "vec3.h"
 
+#include <omp.h> // Include OpenMP header for multithreading support
+
 // camera class
 class camera {
     public:
@@ -29,6 +31,72 @@ class camera {
 
         double defocus_angle = 0.0; // Variation angle of rays through each pixel
         double focus_dist = 10; // Distance from camera lookfrom point to plane of perfect focus
+
+
+        void render_mt(const hittable& world, const hittable& lights) {
+            initialize();
+
+            // Initialize a 2D array to store the pixel colors
+            auto image = new color*[image_height];
+            for (int i = 0; i < image_height; ++i)
+                image[i] = new color[image_width];
+
+            // std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+            // *create a shared variable to track progress
+            int global_done_scanlines = 0;
+
+
+            // Parallel rendering using OpenMP
+            // ! Adjust the number of threads to suit your system
+            #pragma omp parallel num_threads(18)
+            {
+                // Set different random seed for each thread
+                srand(int(time(NULL)) ^ omp_get_thread_num());
+
+                #pragma omp for schedule(static, image_height/(80)) // Use dynamic scheduling for load balancing
+                for (int j = 0; j < image_height; j++) {
+                    #pragma omp critical
+                    {
+                        if ((image_height - global_done_scanlines) % 10 == 0) {
+                            std::clog << "\rScanlines remaining: " << (image_height - global_done_scanlines) << ' ' << std::flush;
+                        }
+                    }
+
+                    #pragma omp atomic
+                    ++global_done_scanlines;
+
+                    for (int i = 0; i < image_width; i++) {
+                        color pixel_color(0, 0, 0); 
+
+                        for (int s_j = 0; s_j < sqrt_spp; s_j++) {
+                            for (int s_i = 0; s_i < sqrt_spp; s_i++) {
+                                ray r = get_ray(i, j, s_i, s_j);
+                                pixel_color += ray_color(r, max_depth, world, lights);
+                            }
+
+                            image[j][i] = pixel_color * pixel_samples_scale;
+                        }
+                    }
+                }
+            }
+            
+
+            // Output the stored pixel colors
+            std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+            for (int j = 0; j < image_height; ++j) {
+                for (int i = 0; i < image_width; ++i) {
+                    write_color(std::cout, image[j][i]);
+                }
+            }
+
+            // Clean up memory
+            for (int i = 0; i < image_height; ++i)
+                delete[] image[i];
+            delete[] image;
+
+            std::clog << "\nDone.                 \n";
+        }
 
 
         void render(const hittable& world, const hittable& lights) {
