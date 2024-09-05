@@ -58,6 +58,26 @@ class hittable_list : public hittable {
         aabb bounding_box() const override {
             return bbox; // return the bounding box
         }
+
+        // Function to compute the PDF value based on the origin and direction
+        // It loops over all objects in the hittable list and calculates the weighted PDF
+        double pdf_value(const point3& origin, const vec3& direction) const override {
+            auto weight = 1.0 / objects.size(); // Each object's weight is the reciprocal of the total number of objects
+            auto sum = 0.0; // Initialize the sum of PDF values
+
+            // Loop through each object in the hittable list
+            for (const auto& object : objects)
+                sum += weight * object->pdf_value(origin, direction); // Add each object's PDF value, weighted
+
+            return sum; // Return the sum of weighted PDF values
+        }
+
+        // Function to generate a random direction towards one of the objects in the list
+        vec3 random(const point3& origin) const override {
+            // Randomly select an object from the hittable list
+            auto int_size = int(objects.size());
+            return objects[random_int(0, int_size-1)]->random(origin); // Generate a random direction towards that object
+        }
     
     private:
         aabb bbox; // bounding box

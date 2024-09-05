@@ -390,7 +390,8 @@ void cornell_box() {
     world.add(make_shared<quad>(point3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
 
     // light
-    world.add(make_shared<quad>(point3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
+    // world.add(make_shared<quad>(point3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
+    world.add(make_shared<quad>(point3(213,554,227), vec3(130,0,0), vec3(0,0,105), light));
 
     // box1
     // // shared_ptr<hittable> box1 = box(point3(0,0,0), point3(165,330,165), white);
@@ -420,7 +421,10 @@ void cornell_box() {
 
     // Light Sources
     auto empty_material = shared_ptr<material>();
-    quad lights(point3(343,554,332), vec3(-130,0,0), vec3(0,0,-105), empty_material);
+    hittable_list lights;
+    lights.add(
+        make_shared<quad>(point3(343,554,332), vec3(-130,0,0), vec3(0,0,-105), empty_material));
+    lights.add(make_shared<sphere>(point3(190, 90, 190), 90, empty_material));
 
     camera cam;
 

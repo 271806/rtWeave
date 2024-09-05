@@ -7,7 +7,7 @@
 
 #include "texture.h"
 
-class hit_record; // will be used in the material class
+// class hit_record; // will be used in the material class
 
 
 class scatter_record {
@@ -177,7 +177,7 @@ class dielectric : public material {
             bool cannot_refract = ri * sin_theta > 1.0; // whether the ray can be refracted
             vec3 direction;
 
-            if (cannot_refract)
+            if (cannot_refract || reflectance(cos_theta, ri) > random_double())
                 direction = reflect(unit_direction, rec.normal); // reflected ray
             else
                 direction = refract(unit_direction, rec.normal, ri); // refracted ray
