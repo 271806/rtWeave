@@ -12,3 +12,4 @@ Current: Book2 finished.
 - add BRDF model
 - update quad to includes more shape
 - add feature: input triangle meshes
+- add directional light
