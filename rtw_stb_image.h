@@ -12,7 +12,7 @@ https://raytracing.github.io/books/RayTracingTheNextWeek.html#image-bouncing-sph
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_FAILURE_USERMSG
-#include "external/stb_image.h"
+#include "ext/stb_image.h"
 
 #include <cstdlib>
 #include <iostream>

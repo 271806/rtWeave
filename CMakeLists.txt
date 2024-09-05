@@ -7,7 +7,27 @@ project(RayTracingInOneWeekend LANGUAGES CXX VERSION 1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# libigl options (since you're not using OpenGL for real-time rendering, we disable it)
+set(LIBIGL_WITH_OPENGL OFF)               # Disable OpenGL features of libigl
+set(LIBIGL_WITH_OPENGL_GLFW OFF)          # Disable OpenGL with GLFW in libigl
+set(LIBIGL_WITH_VIEWER OFF)               # Disable libigl viewer (which depends on OpenGL)
+
+# add subdirectory for libigl
+add_subdirectory(ext/libigl)
+
+# Find OpenMP package
+find_package(OpenMP REQUIRED)
+
 # add executable
 add_executable(raytracing main.cpp)
 add_executable(estimate_halfway math/estimate_halfway.cpp)
 add_executable(sphere_plot math/sphere_plot.cpp)
+
+# link libigl to your raytracing executable
+target_link_libraries(raytracing PUBLIC igl::core)
+
+# include directories for libigl headers
+target_include_directories(raytracing PUBLIC ext/libigl/include)
+
+# Link OpenMP libraries to the project
+target_link_libraries(raytracing PUBLIC OpenMP::OpenMP_CXX)
