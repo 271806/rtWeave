@@ -73,4 +73,34 @@ class hittable_pdf : public pdf {
     point3 origin;
 };
 
+
+// Mixture PDF class that combines two different PDFs
+class mixture_pdf : public pdf {
+  public:
+    // Constructor: Takes two shared pointers to pdf objects
+    mixture_pdf(shared_ptr<pdf> p0, shared_ptr<pdf> p1) {
+        p[0] = p0;  // Assign the first PDF
+        p[1] = p1;  // Assign the second PDF
+    }
+
+    // Override the value function to calculate the combined PDF value
+    // The result is the average of the PDF values from the two PDFs
+    double value(const vec3& direction) const override {
+        return 0.5 * p[0]->value(direction) + 0.5 * p[1]->value(direction);
+    }
+
+    // Override the generate function to generate a random direction
+    // The function randomly chooses between the two PDFs to generate the direction
+    vec3 generate() const override {
+        if (random_double() < 0.5)
+            return p[0]->generate();  // Generate direction using the first PDF
+        else
+            return p[1]->generate();  // Generate direction using the second PDF
+    }
+
+  private:
+    shared_ptr<pdf> p[2];  // Array of two PDFs to combine
+};
+
+
 #endif

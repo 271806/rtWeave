@@ -200,20 +200,34 @@ class camera {
             if (!world.hit(r, interval(0.001, infinity), rec))
                 return background;
 
-            ray scattered;
-            color attenuation;
-            double pdf_value;
+            scatter_record srec;
+            // ray scattered;
+            // color attenuation;
+            // double pdf_value;
             // Calculate the color emitted by the material at the hit point.
             color color_from_emission = rec.mat->emitted(r, rec, rec.u, rec.v, rec.p);
 
             // If the material doesn't scatter the ray, return the emitted color.
-            if (!rec.mat->scatter(r, rec, attenuation, scattered, pdf_value))
+            if (!rec.mat->scatter(r, rec, srec))
                 return color_from_emission;
 
+            if (srec.skip_pdf) {
+                return srec.attenuation * ray_color(srec.skip_pdf_ray, depth-1, world, lights);
+            }
+
             
-            hittable_pdf light_pdf(lights, rec.p);
-            scattered = ray(rec.p, light_pdf.generate(), r.time());
-            pdf_value = light_pdf.value(scattered.direction());
+            // auto p0 = make_shared<hittable_pdf>(lights, rec.p); // * create a pdf for the light source
+            // auto p1 = make_shared<cosine_pdf>(rec.normal); // * create a pdf for the cosine-weighted hemisphere
+            // mixture_pdf mixed_pdf(p0, p1); // * create a mixture pdf of the light source and the cosine-weighted hemisphere
+            
+            // scattered = ray(rec.p, mixed_pdf.generate(), r.time());
+            // pdf_value = mixed_pdf.value(scattered.direction());
+
+            auto light_ptr = make_shared<hittable_pdf>(lights, rec.p);
+            mixture_pdf p(light_ptr, srec.pdf_ptr);
+
+            ray scattered = ray(rec.p, p.generate(), r.time());
+            auto pdf_value = p.value(scattered.direction());
 
 
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
@@ -275,7 +289,7 @@ class camera {
             // * Compute the color from the scattered ray, multiply by the attenuation and the PDF
             // * The result is divided by the PDF to correctly normalize the color contribution
             color color_from_scatter = 
-                (attenuation * scattering_pdf * sample_color) / pdf_value;
+                (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
 
 
             // Return the sum of the emitted color and the scattered color.

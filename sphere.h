@@ -2,120 +2,145 @@
 #define SPHERE_H
 
 #include "hittable.h"
-// #include "vec3.h"
-#include "rtweekend.h"
+#include "onb.h"  // Include for Orthonormal Basis (ONB) transformations
 
-
-// sphere class
+// Sphere class that inherits from the hittable class
 class sphere : public hittable {
-    public:
-        // TODO: make stationary and moving spheres class the same (if not moving, center2 = center1)
-        // * Stationary Sphere
-        sphere(const point3& center, double radius, shared_ptr<material> mat)
-         : center1(center), radius(std::fmax(0, radius)), mat(mat), is_moving(false) {
-            auto rvec = vec3(radius, radius, radius); // a vector represent the radius on x, y, z axis
-            bbox = aabb(center - rvec, center + rvec); // bounding box of the sphere, defining the box with two points
-         }
+  public:
+    // Constructor for a stationary sphere
+    // Takes a static center (point3), a radius, and a shared pointer to the material
+    sphere(const point3& static_center, double radius, shared_ptr<material> mat)
+      : center(static_center, vec3(0,0,0)), radius(std::fmax(0,radius)), mat(mat)
+    {
+        // Create a vector of radius in all directions (x, y, z) for bounding box calculation
+        auto rvec = vec3(radius, radius, radius);
+        // Create an axis-aligned bounding box (AABB) using the center and radius
+        bbox = aabb(static_center - rvec, static_center + rvec);
+    }
 
-        // * Moving Sphere
-        sphere(const point3& center1, const point3& center2, double radius,
-               shared_ptr<material> mat)
-         : center1(center1), radius(std::fmax(0,radius)), mat(mat), is_moving(true)
-        {
-            auto rvec = vec3(radius, radius, radius); // a vector represent the radius on x, y, z axis
-            aabb box1(center1 - rvec, center1 + rvec); // bounding box of the sphere at time 0
-            aabb box2(center2 - rvec, center2 + rvec); // bounding box of the sphere at time 1
+    // Constructor for a moving sphere
+    // Takes two center positions (center1 and center2) representing the motion between time 0 and time 1,
+    // a radius, and a shared pointer to the material
+    sphere(const point3& center1, const point3& center2, double radius,
+           shared_ptr<material> mat)
+      : center(center1, center2 - center1), radius(std::fmax(0,radius)), mat(mat)
+    {
+        // Create the bounding boxes for the sphere at time 0 and time 1
+        auto rvec = vec3(radius, radius, radius);
+        aabb box1(center.at(0) - rvec, center.at(0) + rvec); // Bounding box at time 0
+        aabb box2(center.at(1) - rvec, center.at(1) + rvec); // Bounding box at time 1
+        bbox = aabb(box1, box2); // Merge bounding boxes into a single bounding box
+    }
 
-            bbox = aabb(box1, box2); // bounding box of the sphere, defining the box with two bounding boxes
-            
-            center_vec = center2 - center1; // calculate the vector from center1 to center2 (moving vector)
+    // Hit function that checks if a ray hits the sphere
+    // It takes a ray, a time interval, and a hit record to store hit information
+    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+        // Get the current center of the sphere based on the time of the ray
+        point3 current_center = center.at(r.time());
+        // Compute the vector from the ray's origin to the sphere's center
+        vec3 oc = current_center - r.origin();
+        // Compute quadratic coefficients for the sphere-ray intersection
+        auto a = r.direction().length_squared(); // The squared length of the ray direction
+        auto h = dot(r.direction(), oc);         // Projection of oc on the ray direction
+        auto c = oc.length_squared() - radius*radius; // Difference between oc squared and radius squared
+
+        // Calculate the discriminant to check if the ray intersects the sphere
+        auto discriminant = h*h - a*c;
+        if (discriminant < 0)
+            return false; // No intersection if the discriminant is negative
+
+        // Calculate the square root of the discriminant (used to find the roots)
+        auto sqrtd = std::sqrt(discriminant);
+
+        // Find the nearest root within the acceptable range
+        auto root = (h - sqrtd) / a;
+        if (!ray_t.surrounds(root)) {  // If the root is not in the range, try the other root
+            root = (h + sqrtd) / a;
+            if (!ray_t.surrounds(root))
+                return false; // If both roots are out of range, return false (no hit)
         }
 
-        // initialize the sphere with center and radius
-        // std::fmax(0, radius) is used to prevent negative radius
-        // sphere(const point3& center, double radius, shared_ptr<material> mat) : center(center), radius(std::fmax(0, radius)), mat(mat) {}
+        // If we have a valid root, update the hit record
+        rec.t = root; // Record the hit time
+        rec.p = r.at(rec.t); // Compute the hit point using the ray function
+        // Compute the normal at the hit point and set the face normal
+        vec3 outward_normal = (rec.p - current_center) / radius;
+        rec.set_face_normal(r, outward_normal); // Adjust normal direction depending on the ray
+        get_sphere_uv(outward_normal, rec.u, rec.v); // Calculate texture UV coordinates
+        rec.mat = mat; // Assign the material to the hit record
 
-        // check if the ray hits the sphere, if hit, return the record
-        // if hit: true, else: false
-        bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
-            point3 center = is_moving ? sphere_center(r.time()) : center1; // get the center of the sphere
-            vec3 oc = center - r.origin(); // vector from ray origin to the center of the sphere
-            
-            // * simplified dicriminant calculation
-            auto a = r.direction().length_squared();
-            auto h = dot(r.direction(), oc);
-            auto c = oc.length_squared() - radius * radius;
-            auto discriminant = h * h - a * c;
+        return true; // Return true indicating a hit
+    }
 
-            if (discriminant < 0)
-                return false;
-            
-            auto sqrtd = std::sqrt(discriminant); // calculate the square root of the discriminant
+    // Function to return the axis-aligned bounding box of the sphere
+    aabb bounding_box() const override { return bbox; }
 
+    // Function to calculate the probability density function (PDF) value
+    // This is used to determine how likely a direction is to hit the sphere
+    double pdf_value(const point3& origin, const vec3& direction) const override {
+        // Create a temporary hit record
+        hit_record rec;
+        // Cast a ray from the origin in the given direction and check for hits
+        if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec))
+            return 0; // If the ray doesn't hit the sphere, return 0
 
-            // Find the nearest root that lies in the acceptable range.
-            auto root = (h - sqrtd) / a; // * root_smaller
-            // ! Deprecated (not using the interval class)
-            // if (root <= ray_tmin || root >= ray_tmax) {
-            //     root = (h + sqrtd) / a; // * try root_larger
-            //     if (root <= ray_tmin || root >= ray_tmax)
-            //         return false; // * return false if both roots are out of range
-            // }
-            // ! Deprecated end
+        // Compute the squared distance from the origin to the sphere's center
+        auto dist_squared = (center.at(0) - origin).length_squared();
+        // Compute the maximum cosine of the angle between the ray and the surface normal
+        auto cos_theta_max = std::sqrt(1 - radius*radius/dist_squared);
+        // Calculate the solid angle of the sphere from the origin
+        auto solid_angle = 2*pi*(1-cos_theta_max);
 
-            // * using interval class
-            if (!ray_t.surrounds(root)) {
-                root = (h + sqrtd) / a; // * try root_larger
-                if (!ray_t.surrounds(root))
-                    return false; // * return false if both roots are out of range
-            }
+        return  1 / solid_angle; // Return the inverse of the solid angle (the PDF value)
+    }
 
-            // if root is in the acceptable range, record the hit point and normal
-            rec.t = root; // t value
-            rec.p = r.at(rec.t); // hit point coordinate
-            // rec.normal = (rec.p - center) / radius; // normal = (hitpoint - center) / radius (for a sphere)
-            // * normal at the hit point (without front face check)
-            vec3 outward_normal = (rec.p - center) / radius; // outward normal
-            // * use set_face_normal from hit_record to set the normal's direction
-            rec.set_face_normal(r, outward_normal); // set the face normal
-            get_sphere_uv(outward_normal, rec.u, rec.v); // get the uv coordinate of the hit point
-            rec.mat = mat; // set the material
+    // Function to generate a random direction towards the sphere from a given origin
+    vec3 random(const point3& origin) const override {
+        // Compute the direction from the origin to the sphere's center
+        vec3 direction = center.at(0) - origin;
+        // Calculate the squared distance from the origin to the sphere
+        auto distance_squared = direction.length_squared();
+        // Use an orthonormal basis (ONB) to transform random directions into the local space
+        onb uvw(direction);
+        // Return a randomly generated direction to the sphere
+        return uvw.transform(random_to_sphere(radius, distance_squared));
+    }
 
-            return true; // * return true if hit
-        }
+  private:
+    ray center;  // The ray represents the center of the sphere (static or moving)
+    double radius;  // Radius of the sphere
+    shared_ptr<material> mat;  // Pointer to the material of the sphere
+    aabb bbox;  // The bounding box of the sphere
 
-        aabb bounding_box() const override {
-            return bbox;
-        }
+    // Utility function to calculate the UV coordinates of a point on the sphere
+    static void get_sphere_uv(const point3& p, double& u, double& v) {
+        // p: A point on the surface of the sphere
+        // u: Angle around the Y-axis, normalized between 0 and 1
+        // v: Angle from Y = -1 to Y = +1, normalized between 0 and 1
 
-    private:
-        point3 center1;
-        // point3 center;
-        double radius;
-        shared_ptr<material> mat; // material of the sphere
-        bool is_moving;
-        vec3 center_vec;
-        aabb bbox;
+        auto theta = std::acos(-p.y());  // Compute the polar angle (latitude)
+        auto phi = std::atan2(-p.z(), p.x()) + pi;  // Compute the azimuthal angle (longitude)
 
-        point3 sphere_center(double time) const {
-            // Linearly interpolate from center1 to center2 according to time, where t=0 yields
-            // center1, and t=1 yields center2.
-            return center1 + time * center_vec;
-        }
+        u = phi / (2*pi);  // Normalize the azimuthal angle
+        v = theta / pi;    // Normalize the polar angle
+    }
 
-        static void get_sphere_uv(const point3& p, double& u, double& v) {
-            // p: a given point on the sphere of radius one, centered at the origin.
-            // u: returned value [0,1] of angle around the Y axis from X=-1.
-            // v: returned value [0,1] of angle from Y=-1 to Y=+1.
-            //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
-            //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
-            //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
-            auto theta = std::acos(-p.y());
-            auto phi = std::atan2(-p.z(), p.x()) + pi;
+    // Utility function to generate a random direction towards the sphere
+    static vec3 random_to_sphere(double radius, double distance_squared) {
+        // Generate two random numbers between 0 and 1
+        auto r1 = random_double();
+        auto r2 = random_double();
+        // Calculate the z-component of the random direction
+        auto z = 1 + r2*(std::sqrt(1-radius*radius/distance_squared) - 1);
 
-            u = phi / (2*pi);
-            v = theta / pi;
-        }
+        // Compute the azimuthal angle (phi) and the x, y components
+        auto phi = 2*pi*r1;
+        auto x = std::cos(phi) * std::sqrt(1-z*z);
+        auto y = std::sin(phi) * std::sqrt(1-z*z);
+
+        // Return the random direction vector
+        return vec3(x, y, z);
+    }
 };
 
 #endif
