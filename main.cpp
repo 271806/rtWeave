@@ -13,6 +13,8 @@
 
 #include <iostream>
 #include <chrono>
+#include <Eigen/Core>
+#include <igl/readOBJ.h>
 
 
 // ! Deprecated (ray_color, refactored)
@@ -431,7 +433,7 @@ void cornell_box() {
     // camera settings
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 600;
-    cam.samples_per_pixel = 100;
+    cam.samples_per_pixel = 10;
     cam.max_depth         = 50;
     cam.background        = color(0,0,0);
 
@@ -668,4 +670,26 @@ int main() {
     // * calculate the duration
     std::chrono::duration<double, std::milli> duration = end - start;
     std::cerr << "Rendering Time with BVH (basic, aabb): " << duration.count() << " ms\n";
+
+    // * eigen test
+    Eigen::Vector3d test(1.0, 2.0, 3.0);
+    std::cerr << "Eigen test vector: " << test.transpose() << std::endl;
+
+    // * triangle mesh .obj file read test
+    Eigen::MatrixXd V; // 顶点矩阵 (n x 3)
+    Eigen::MatrixXi F; // 面矩阵 (m x 3)
+
+    std::string obj_file_path = "assets/bunny_309_faces.obj"; // 替换为你的OBJ文件路径
+    if (!igl::readOBJ(obj_file_path, V, F)) {
+        std::cerr << "Failed to load OBJ file." << std::endl;
+        return -1;
+    }
+    
+    std::cerr << "Number of vertices: " << V.rows() << std::endl;
+    std::cerr << "Number of faces: " << F.rows() << std::endl;
+
+    // 输出部分顶点和面信息
+    std::cerr << "First 5 vertices:\n" << V.topRows(5) << std::endl;
+    std::cerr << "First 5 faces:\n" << F.topRows(5) << std::endl;
+    return 0;
 }

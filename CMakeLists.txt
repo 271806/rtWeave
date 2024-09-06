@@ -18,6 +18,9 @@ add_subdirectory(ext/libigl)
 # Find OpenMP package
 find_package(OpenMP REQUIRED)
 
+# Find Eigen3 package
+find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+
 # add executable
 add_executable(raytracing main.cpp)
 add_executable(estimate_halfway math/estimate_halfway.cpp)
@@ -27,7 +30,7 @@ add_executable(sphere_plot math/sphere_plot.cpp)
 target_link_libraries(raytracing PUBLIC igl::core)
 
 # include directories for libigl headers
-target_include_directories(raytracing PUBLIC ext/libigl/include)
+target_include_directories(raytracing PUBLIC ext/libigl/include /usr/include/eigen3/)
 
 # Link OpenMP libraries to the project
 target_link_libraries(raytracing PUBLIC OpenMP::OpenMP_CXX)
