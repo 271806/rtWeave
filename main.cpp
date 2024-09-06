@@ -5,6 +5,7 @@
 #include "constant_medium.h"
 #include "hittable_list.h"
 #include "sphere.h"
+#include "triangle.h"
 #include "quad.h"
 #include "material.h"
 #include "bvh.h"
@@ -413,6 +414,10 @@ void cornell_box() {
     // Box
     shared_ptr<hittable> box1 = box(point3(0,0,0), point3(165,330,165), white);
     box1 = make_shared<rotate_y>(box1, 15);
+    // * rotate other axis-----------------
+    // box1 = make_shared<rotate_x>(box1, 30);
+    // box1 = make_shared<rotate_z>(box1, 15);
+    // * ---------------------------------
     box1 = make_shared<translate>(box1, vec3(265,0,295));
     world.add(box1);
 
@@ -645,12 +650,114 @@ void cornell_box_custom() {
     cam.render(world, lights);
 }
 
+
+void triobj_test() {
+    hittable_list world;
+
+    // materials
+    auto red   = make_shared<lambertian>(color(.65, .05, .05));
+    auto white = make_shared<lambertian>(color(.73, .73, .73));
+    auto green = make_shared<lambertian>(color(.12, .45, .15));
+    auto light = make_shared<diffuse_light>(color(20, 20, 20));
+
+    auto diffuse_mat = make_shared<lambertian>(color(.05, .05, .73));  // 三角形的漫反射材质
+
+    // walls
+    world.add(make_shared<quad>(point3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
+    world.add(make_shared<quad>(point3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
+    world.add(make_shared<quad>(point3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
+    world.add(make_shared<quad>(point3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
+    world.add(make_shared<quad>(point3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
+
+    // light
+    world.add(make_shared<quad>(point3(213,554,227), vec3(130,0,0), vec3(0,0,105), light));
+
+    // * triangle mesh----------
+    // // load triangle mesh from OBJ file
+    // Eigen::MatrixXd V;  // 顶点矩阵
+    // Eigen::MatrixXi F;  // 面矩阵
+    // std::string obj_file_path = "assets/bunny_309_faces_rotated2.obj";  // 替换为你的OBJ文件路径
+    // if (!igl::readOBJ(obj_file_path, V, F)) {
+    //     std::cerr << "Failed to load OBJ file." << std::endl;
+    //     return;
+    // }
+
+    Eigen::MatrixXd V;  // 顶点矩阵
+    Eigen::MatrixXi F;  // 面矩阵
+    Eigen::MatrixXd N;  // 法线矩阵
+
+    std::string obj_file_path = "assets/bunny_309_faces2.obj";
+    if (!igl::readOBJ(obj_file_path, V, F, N)) {
+        std::cerr << "Failed to load OBJ file." << std::endl;
+        return;
+    }
+
+
+    // add triangles to world
+    for (int i = 0; i < F.rows(); ++i) {
+        vec3 translation(278, 20, 298);
+        double scale_factor = 2.5;
+
+        // 读取三角形的顶点
+        vec3 v0 = scale_factor * vec3(V(F(i, 0), 0), V(F(i, 0), 1), V(F(i, 0), 2)) - translation;
+        vec3 v1 = scale_factor * vec3(V(F(i, 1), 0), V(F(i, 1), 1), V(F(i, 1), 2)) - translation;
+        vec3 v2 = scale_factor * vec3(V(F(i, 2), 0), V(F(i, 2), 1), V(F(i, 2), 2)) - translation;
+
+        // 读取三角形的法线
+        vec3 n0 = unit_vector(vec3(N(F(i, 0), 0), N(F(i, 0), 1), N(F(i, 0), 2)));
+        vec3 n1 = unit_vector(vec3(N(F(i, 1), 0), N(F(i, 1), 1), N(F(i, 1), 2)));
+        vec3 n2 = unit_vector(vec3(N(F(i, 2), 0), N(F(i, 2), 1), N(F(i, 2), 2)));
+
+        auto triangle = make_shared<Triangle>(v0, v1, v2, n0, n1, n2, diffuse_mat);
+
+        // 旋转三角形
+        auto rotated_triangle_x = make_shared<rotate_x>(triangle, 0);  // 示例旋转角度
+        auto rotated_triangle_y = make_shared<rotate_y>(rotated_triangle_x, 0);
+        auto rotated_triangle_z = make_shared<rotate_z>(rotated_triangle_y, 0);
+
+        // 将三角形平移回目标位置
+        auto final_triangle = make_shared<translate>(rotated_triangle_z, translation);
+
+        // 添加到场景
+        world.add(final_triangle);
+    }
+
+    // * ------------------------------
+
+    // Light Sources
+    auto empty_material = shared_ptr<material>();
+    hittable_list lights;
+    lights.add(
+        make_shared<quad>(point3(343,554,332), vec3(-130,0,0), vec3(0,0,-105), empty_material));
+    lights.add(make_shared<sphere>(point3(190, 90, 190), 90, empty_material));
+
+    camera cam;
+
+    // camera settings
+    cam.aspect_ratio      = 1.0;
+    cam.image_width       = 600;
+    cam.samples_per_pixel = 5;
+    cam.max_depth         = 50;
+    cam.background        = color(0,0,0);
+
+    cam.vfov     = 40;
+    cam.lookfrom = point3(278, 278, -800);
+    cam.lookat   = point3(278, 278, 0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
+
+    // cam.render_mt(world, lights);
+    cam.render(world, lights);
+}
+
+
 int main() {
     // * start time record
     auto start = std::chrono::high_resolution_clock::now();
     
     // * Scene Setting
-    switch(7) {
+    switch(11) {
         case 1: bouncing_spheres(); break;
         case 2: checkered_spheres(); break;
         case 3: earth(); break;
@@ -661,6 +768,7 @@ int main() {
         case 8: cornell_smoke(); break;
         case 9: final_scene(800, 1000, 30); break;
         case 10: cornell_box_custom(); break;
+        case 11: triobj_test(); break;
         default: final_scene(400, 250, 4); break;
     }
 
@@ -676,20 +784,20 @@ int main() {
     std::cerr << "Eigen test vector: " << test.transpose() << std::endl;
 
     // * triangle mesh .obj file read test
-    Eigen::MatrixXd V; // 顶点矩阵 (n x 3)
-    Eigen::MatrixXi F; // 面矩阵 (m x 3)
+    // Eigen::MatrixXd V; // 顶点矩阵 (n x 3)
+    // Eigen::MatrixXi F; // 面矩阵 (m x 3)
 
-    std::string obj_file_path = "assets/bunny_309_faces.obj"; // 替换为你的OBJ文件路径
-    if (!igl::readOBJ(obj_file_path, V, F)) {
-        std::cerr << "Failed to load OBJ file." << std::endl;
-        return -1;
-    }
+    // std::string obj_file_path = "assets/bunny_309_faces.obj"; // 替换为你的OBJ文件路径
+    // if (!igl::readOBJ(obj_file_path, V, F)) {
+    //     std::cerr << "Failed to load OBJ file." << std::endl;
+    //     return -1;
+    // }
     
-    std::cerr << "Number of vertices: " << V.rows() << std::endl;
-    std::cerr << "Number of faces: " << F.rows() << std::endl;
+    // std::cerr << "Number of vertices: " << V.rows() << std::endl;
+    // std::cerr << "Number of faces: " << F.rows() << std::endl;
 
-    // 输出部分顶点和面信息
-    std::cerr << "First 5 vertices:\n" << V.topRows(5) << std::endl;
-    std::cerr << "First 5 faces:\n" << F.topRows(5) << std::endl;
+    // // 输出部分顶点和面信息
+    // std::cerr << "First 5 vertices:\n" << V.topRows(5) << std::endl;
+    // std::cerr << "First 5 faces:\n" << F.topRows(5) << std::endl;
     return 0;
 }
