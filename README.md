@@ -1,7 +1,7 @@
 # rtWeave
 Ray-Tracing Renderer.
 Implement from Ray-Tracing in One Weekend Book Series.
-Current: Book2 finished.
+Current: Book3 - the rest of your life, finished.
 
 ## TODO
 - parallelization (mutilthreads cpu, cuda, etc.)
