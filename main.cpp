@@ -712,7 +712,7 @@ void triobj_test() {
     // camera settings
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 600;
-    cam.samples_per_pixel = 50;
+    cam.samples_per_pixel = 500;
     cam.max_depth         = 50;
     cam.background        = color(0,0,0);
 
