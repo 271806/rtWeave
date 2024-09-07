@@ -658,9 +658,10 @@ void triobj_test() {
     auto red   = make_shared<lambertian>(color(.65, .05, .05));
     auto white = make_shared<lambertian>(color(.73, .73, .73));
     auto green = make_shared<lambertian>(color(.12, .45, .15));
-    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+    auto light = make_shared<diffuse_light>(color(19, 19, 19));
 
-    auto diffuse_mat = make_shared<lambertian>(color(.05, .05, .73));  // 三角形的漫反射材质
+    // auto diffuse_mat = make_shared<lambertian>(color(.05, .05, .73));  // 三角形的漫反射材质
+    shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.5);  // 金属材质
 
     // walls
     world.add(make_shared<quad>(point3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
@@ -676,7 +677,7 @@ void triobj_test() {
     Eigen::MatrixXd V;  // 顶点矩阵
     Eigen::MatrixXi F;  // 面矩阵
 
-    std::string obj_file_path = "assets/bunny_309_faces_rotated2.obj";  // 替换为你的 OBJ 文件路径
+    std::string obj_file_path = "assets/icosphere.obj";  // 替换为你的 OBJ 文件路径
     if (!igl::readOBJ(obj_file_path, V, F)) {
         std::cerr << "Failed to load OBJ file." << std::endl;
         return;
@@ -684,15 +685,15 @@ void triobj_test() {
 
     // add triangles to world
     for (int i = 0; i < F.rows(); ++i) {
-        vec3 translation(278, 20, 298);
-        double scale_factor = 2.5;
+        vec3 translation(278, 140, 278);
+        double scale_factor = 100;
 
         // 读取三角形的顶点
         vec3 v0 = scale_factor * vec3(V(F(i, 0), 0), V(F(i, 0), 1), V(F(i, 0), 2)) + translation;
         vec3 v1 = scale_factor * vec3(V(F(i, 1), 0), V(F(i, 1), 1), V(F(i, 1), 2)) + translation;
         vec3 v2 = scale_factor * vec3(V(F(i, 2), 0), V(F(i, 2), 1), V(F(i, 2), 2)) + translation;
 
-        auto triangle = make_shared<Triangle>(v0, v1, v2, diffuse_mat);
+        auto triangle = make_shared<Triangle>(v0, v1, v2, aluminum);
 
         // 将三角形添加到场景中
         world.add(triangle);
@@ -711,7 +712,7 @@ void triobj_test() {
     // camera settings
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 600;
-    cam.samples_per_pixel = 5;
+    cam.samples_per_pixel = 50;
     cam.max_depth         = 50;
     cam.background        = color(0,0,0);
 
