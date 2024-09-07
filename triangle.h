@@ -7,15 +7,14 @@
 
 class Triangle : public hittable {
 public:
-    Triangle(const vec3& v0, const vec3& v1, const vec3& v2, const vec3& n0, const vec3& n1, const vec3& n2, std::shared_ptr<material> mat)
-        : v0(v0), v1(v1), v2(v2), n0(n0), n1(n1), n2(n2), mat(mat) {}
+    Triangle(const vec3& v0, const vec3& v1, const vec3& v2, std::shared_ptr<material> mat)
+        : v0(v0), v1(v1), v2(v2), mat(mat) {}
 
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override;
     aabb bounding_box() const override;
 
 private:
-    vec3 v0, v1, v2;  // 三角形顶点
-    vec3 n0, n1, n2;  // 三角形的每个顶点的法线
+    vec3 v0, v1, v2;
     std::shared_ptr<material> mat;
 };
 
@@ -25,7 +24,6 @@ bool Triangle::hit(const ray& r, interval ray_t, hit_record& rec) const {
     vec3 edge2 = v2 - v0;
     vec3 h = cross(r.direction(), edge2);
     double a = dot(edge1, h);
-
     if (a > -1e-8 && a < 1e-8) return false;
 
     double f = 1.0 / a;
@@ -41,13 +39,8 @@ bool Triangle::hit(const ray& r, interval ray_t, hit_record& rec) const {
     if (ray_t.surrounds(t)) {
         rec.t = t;
         rec.p = r.at(t);
-
-        // 使用插值计算法线（根据三角形的顶点法线进行插值）
-        rec.normal = unit_vector((1 - u - v) * n0 + u * n1 + v * n2);
-
-        // 设置正确的法线方向
-        rec.set_face_normal(r, rec.normal);
-        
+        vec3 outward_normal = unit_vector(cross(edge1, edge2));
+        rec.set_face_normal(r, outward_normal);  // 确保法线方向正确
         rec.mat = mat;
         return true;
     }
@@ -55,5 +48,21 @@ bool Triangle::hit(const ray& r, interval ray_t, hit_record& rec) const {
     return false;
 }
 
+// 实现 bounding_box 函数
+aabb Triangle::bounding_box() const {
+    vec3 min_point(
+        std::fmin(v0.x(), std::fmin(v1.x(), v2.x())),
+        std::fmin(v0.y(), std::fmin(v1.y(), v2.y())),
+        std::fmin(v0.z(), std::fmin(v1.z(), v2.z()))
+    );
+
+    vec3 max_point(
+        std::fmax(v0.x(), std::fmax(v1.x(), v2.x())),
+        std::fmax(v0.y(), std::fmax(v1.y(), v2.y())),
+        std::fmax(v0.z(), std::fmax(v1.z(), v2.z()))
+    );
+
+    return aabb(min_point, max_point);  // 使用最小和最大点来构建包围盒
+}
 
 #endif

@@ -658,7 +658,7 @@ void triobj_test() {
     auto red   = make_shared<lambertian>(color(.65, .05, .05));
     auto white = make_shared<lambertian>(color(.73, .73, .73));
     auto green = make_shared<lambertian>(color(.12, .45, .15));
-    auto light = make_shared<diffuse_light>(color(20, 20, 20));
+    auto light = make_shared<diffuse_light>(color(15, 15, 15));
 
     auto diffuse_mat = make_shared<lambertian>(color(.05, .05, .73));  // 三角形的漫反射材质
 
@@ -672,26 +672,15 @@ void triobj_test() {
     // light
     world.add(make_shared<quad>(point3(213,554,227), vec3(130,0,0), vec3(0,0,105), light));
 
-    // * triangle mesh----------
-    // // load triangle mesh from OBJ file
-    // Eigen::MatrixXd V;  // 顶点矩阵
-    // Eigen::MatrixXi F;  // 面矩阵
-    // std::string obj_file_path = "assets/bunny_309_faces_rotated2.obj";  // 替换为你的OBJ文件路径
-    // if (!igl::readOBJ(obj_file_path, V, F)) {
-    //     std::cerr << "Failed to load OBJ file." << std::endl;
-    //     return;
-    // }
-
+    // * triangle mesh ----------
     Eigen::MatrixXd V;  // 顶点矩阵
     Eigen::MatrixXi F;  // 面矩阵
-    Eigen::MatrixXd N;  // 法线矩阵
 
-    std::string obj_file_path = "assets/bunny_309_faces2.obj";
-    if (!igl::readOBJ(obj_file_path, V, F, N)) {
+    std::string obj_file_path = "assets/bunny_309_faces_rotated2.obj";  // 替换为你的 OBJ 文件路径
+    if (!igl::readOBJ(obj_file_path, V, F)) {
         std::cerr << "Failed to load OBJ file." << std::endl;
         return;
     }
-
 
     // add triangles to world
     for (int i = 0; i < F.rows(); ++i) {
@@ -699,29 +688,15 @@ void triobj_test() {
         double scale_factor = 2.5;
 
         // 读取三角形的顶点
-        vec3 v0 = scale_factor * vec3(V(F(i, 0), 0), V(F(i, 0), 1), V(F(i, 0), 2)) - translation;
-        vec3 v1 = scale_factor * vec3(V(F(i, 1), 0), V(F(i, 1), 1), V(F(i, 1), 2)) - translation;
-        vec3 v2 = scale_factor * vec3(V(F(i, 2), 0), V(F(i, 2), 1), V(F(i, 2), 2)) - translation;
+        vec3 v0 = scale_factor * vec3(V(F(i, 0), 0), V(F(i, 0), 1), V(F(i, 0), 2)) + translation;
+        vec3 v1 = scale_factor * vec3(V(F(i, 1), 0), V(F(i, 1), 1), V(F(i, 1), 2)) + translation;
+        vec3 v2 = scale_factor * vec3(V(F(i, 2), 0), V(F(i, 2), 1), V(F(i, 2), 2)) + translation;
 
-        // 读取三角形的法线
-        vec3 n0 = unit_vector(vec3(N(F(i, 0), 0), N(F(i, 0), 1), N(F(i, 0), 2)));
-        vec3 n1 = unit_vector(vec3(N(F(i, 1), 0), N(F(i, 1), 1), N(F(i, 1), 2)));
-        vec3 n2 = unit_vector(vec3(N(F(i, 2), 0), N(F(i, 2), 1), N(F(i, 2), 2)));
+        auto triangle = make_shared<Triangle>(v0, v1, v2, diffuse_mat);
 
-        auto triangle = make_shared<Triangle>(v0, v1, v2, n0, n1, n2, diffuse_mat);
-
-        // 旋转三角形
-        auto rotated_triangle_x = make_shared<rotate_x>(triangle, 0);  // 示例旋转角度
-        auto rotated_triangle_y = make_shared<rotate_y>(rotated_triangle_x, 0);
-        auto rotated_triangle_z = make_shared<rotate_z>(rotated_triangle_y, 0);
-
-        // 将三角形平移回目标位置
-        auto final_triangle = make_shared<translate>(rotated_triangle_z, translation);
-
-        // 添加到场景
-        world.add(final_triangle);
+        // 将三角形添加到场景中
+        world.add(triangle);
     }
-
     // * ------------------------------
 
     // Light Sources
@@ -750,6 +725,8 @@ void triobj_test() {
     // cam.render_mt(world, lights);
     cam.render(world, lights);
 }
+
+
 
 
 int main() {
