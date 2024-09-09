@@ -10,56 +10,13 @@
 #include "material.h"
 #include "bvh.h"
 #include "texture.h"
+#include "hdr_texture.h"
 
 
 #include <iostream>
 #include <chrono>
 #include <Eigen/Core>
 #include <igl/readOBJ.h>
-
-
-// ! Deprecated (ray_color, refactored)
-/*
-// return the ray_color
-// * (now always black)
-color ray_color(const ray& r, const hittable& world) {
-    // ! Deprecated (always return color) 
-    // return color(0, 0, 0.5);
-    // ! Deprecated end
-
-    // ! Deprecated (only return when the ray hits the sphere)
-    // if (hit_sphere(point3(0, 0, -1), 0.5, r)) {
-    //     return color(0, 0, 1);
-    // }  
-    // ! Deprecated end
-
-    hit_record rec;
-    if (world.hit(r, interval(0, infinity), rec)) {
-        return 0.5 * (rec.normal + color(1, 1, 1)); // * normal to color
-    }
-
-    // ! Deprecated
-    // * if hit, return the color of the sphere
-    // get t's value when the ray hits the sphere
-    // auto t = hit_sphere(point3(0, 0, -1), 0.5, r);
-    // if (t > 0.0) {
-        // get sphere surface normal(hitpiont - center)
-    //     vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
-        // return the color of the sphere (scale the normal's xyz to color rgb)
-    //     return 0.5 * color(N.x() + 1, N.y() + 1, N.z() + 1);
-    // }
-    // ! Deprecated end
-
-    // * if not hit, return the background color
-    vec3 unit_direction = unit_vector(r.direction());
-    // scale the y component to [0, 1], unit_direction is in the range of [-1, 1], a is in the range of [0, 1]
-    auto a = 0.5 * (unit_direction.y() + 1.0); 
-    // blendedvalue (or, liner interpolation) of white and blue
-    // * (1 - a) * white + a * blue
-    return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
-}
-*/
-// ! Deprecated end
 
 
 void bouncing_spheres() {
@@ -647,6 +604,10 @@ void cornell_box_custom() {
 
     cam.defocus_angle = 0;
 
+    // 加载 HDR 环境贴图
+    std::string hdr_path = "hdr_map/rosendal_plains_2_4k.hdr";  // 替换为你的 HDR 文件路径
+    cam.background_texture = std::make_shared<hdr_texture>(hdr_path);
+
     cam.render(world, lights);
 }
 
@@ -728,15 +689,109 @@ void triobj_test() {
     cam.render(world, lights);
 }
 
+void hdr_test() {
+    hittable_list world;
+
+    // 创建一个理想金属材质
+    auto metal_material = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);  // 反射率为 (0.8, 0.85, 0.88)，无粗糙度
+
+    // 添加一个球体到场景中
+    world.add(make_shared<sphere>(point3(0, 0, 0), 1.0, metal_material));
+
+    // 环境光源和场景灯光可以为空，因为我们要测试 HDR 环境
+    hittable_list lights;
+
+    // 创建相机
+    camera cam;
+
+    // 设置相机参数
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 800;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+    cam.background = color(0, 0, 0);  // 设置默认背景色为黑色
+
+    // 设置相机位置和视角
+    cam.lookfrom = point3(0, 1, 5);  // 相机位置
+    cam.lookat = point3(0, 0, 0);    // 相机看向球体
+    cam.vup = vec3(0, 1, 0);         // 垂直向上
+    cam.vfov = 40.0;                 // 视角
+    cam.defocus_angle = 0.0;         // 不启用景深模糊
+
+    // 加载 HDR 环境贴图
+    std::string hdr_path = "hdr_map/rosendal_plains_2_4k.hdr";  // 替换为你的 HDR 文件路径
+    cam.background_texture = std::make_shared<hdr_texture>(hdr_path);
+
+    // 渲染场景
+    cam.render(world, lights);
+}
+
+void hdr_test2() {
+    hittable_list world;
+    // 环境光源和场景灯光可以为空，因为我们要测试 HDR 环境
+    hittable_list lights;
+
+    shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.1);  // 金属材质
+
+    // * triangle mesh ----------
+    Eigen::MatrixXd V;  // 顶点矩阵
+    Eigen::MatrixXi F;  // 面矩阵
 
 
+    std::string obj_file_path = "assets/tree5.obj";  // 替换为你的 OBJ 文件路径
+    if (!igl::readOBJ(obj_file_path, V, F)) {
+        std::cerr << "Failed to load OBJ file." << std::endl;
+        return;
+    }
+
+    // add triangles to world
+    for (int i = 0; i < F.rows(); ++i) {
+        vec3 translation(278, 10, 278);
+        double scale_factor = 4;
+
+        // 读取三角形的顶点
+        vec3 v0 = scale_factor * vec3(V(F(i, 0), 0), V(F(i, 0), 1), V(F(i, 0), 2)) + translation;
+        vec3 v1 = scale_factor * vec3(V(F(i, 1), 0), V(F(i, 1), 1), V(F(i, 1), 2)) + translation;
+        vec3 v2 = scale_factor * vec3(V(F(i, 2), 0), V(F(i, 2), 1), V(F(i, 2), 2)) + translation;
+
+        auto triangle = make_shared<Triangle>(v0, v1, v2, aluminum);
+
+        // 将三角形添加到场景中
+        world.add(triangle);
+    }
+    // * ------------------------------
+
+    // 创建相机
+    camera cam;
+
+    // camera settings
+    cam.aspect_ratio      = 1.0;
+    cam.image_width       = 800;
+    cam.samples_per_pixel = 700;
+    cam.max_depth         = 50;
+    cam.background        = color(0,0,0);
+
+    cam.vfov     = 40;
+    cam.lookfrom = point3(278, 278, -800);
+    cam.lookat   = point3(278, 278, 0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
+
+    // 加载 HDR 环境贴图
+    std::string hdr_path = "hdr_map/rosendal_plains_2_4k.hdr";  // 替换为你的 HDR 文件路径
+    cam.background_texture = std::make_shared<hdr_texture>(hdr_path);
+
+    // 渲染场景
+    cam.render(world, lights);
+}
 
 int main() {
     // * start time record
     auto start = std::chrono::high_resolution_clock::now();
     
     // * Scene Setting
-    switch(11) {
+    switch(13) {
         case 1: bouncing_spheres(); break;
         case 2: checkered_spheres(); break;
         case 3: earth(); break;
@@ -748,6 +803,8 @@ int main() {
         case 9: final_scene(800, 1000, 30); break;
         case 10: cornell_box_custom(); break;
         case 11: triobj_test(); break;
+        case 12: hdr_test(); break;
+        case 13: hdr_test2(); break;
         default: final_scene(400, 250, 4); break;
     }
 

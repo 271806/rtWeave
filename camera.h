@@ -7,12 +7,16 @@
 #include "pdf.h"
 #include "material.h"
 #include "vec3.h"
+#include "hdr_texture.h"
 
 #include <omp.h> // Include OpenMP header for multithreading support
 
 // camera class
 class camera {
     public:
+        // hdr texture
+        std::shared_ptr<hdr_texture> background_texture;  // 指向 HDR 纹理的指针
+
         // * Image
         double aspect_ratio = 1.0; // Ratio of image width over height
         int image_width = 100; // Rendered image width in pixel count
@@ -21,7 +25,7 @@ class camera {
         // * for recursive ray tracing
         int max_depth = 10; // Maximum depth of recursive ray tracing
 
-        color background; // Scene background color
+        color background; // Scene background color (if no hdr texture is provided)
         
         double vfov = 90; // Vertical field-of-view in degrees
 
@@ -118,24 +122,6 @@ class camera {
                             pixel_color += ray_color(r, max_depth, world, lights); // calculate & accumulate the color
                             }
                         }
-                    
-                    // * anti-aliasing, mutiple samples per pixel, accumulate the color
-                    // for (int sample = 0; sample < samples_per_pixel; sample++) {
-                    //     ray r = get_ray(i, j); // generate a ray through the pixel with random offset
-                    //     pixel_color += ray_color(r, max_depth, world); // calculate & accumulate the color
-                    // }
-
-
-                    // ! Deprecated (without anti-aliasing)
-                    /*
-                    auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v); // * the center of the each pixel
-                    auto ray_direction = pixel_center - center; // * the direction of the ray through this pixel
-                    ray r(center, ray_direction); // ray direction is not unit vector (easier)
-
-                    color pixel_color = ray_color(r, world); // * the color of the pixel
-                    write_color(std::cout, pixel_color);
-                    */
-                   // ! Deprecated end
                     
                     // scale the accumulated color and output to the output stream
                     write_color(std::cout, pixel_samples_scale * pixel_color);
@@ -265,8 +251,16 @@ class camera {
             hit_record rec;
 
             // If the ray doesn't hit anything, return the background color.
-            if (!world.hit(r, interval(0.001, infinity), rec))
-                return background;
+            if (!world.hit(r, interval(0.001, infinity), rec)){
+                if (background_texture) {
+                    vec3 unit_direction = unit_vector(r.direction());
+                    double u = 0.5 + atan2(unit_direction.z(), unit_direction.x()) / (2 * pi);
+                    double v = 0.5 - asin(unit_direction.y()) / pi;
+                    return background_texture->value(u, v);  // 使用 HDR 环境贴图
+                } else {
+                    return background; // 使用背景颜色
+                }
+            }
 
             scatter_record srec;
             // ray scattered;
@@ -283,74 +277,13 @@ class camera {
                 return srec.attenuation * ray_color(srec.skip_pdf_ray, depth-1, world, lights);
             }
 
-            
-            // auto p0 = make_shared<hittable_pdf>(lights, rec.p); // * create a pdf for the light source
-            // auto p1 = make_shared<cosine_pdf>(rec.normal); // * create a pdf for the cosine-weighted hemisphere
-            // mixture_pdf mixed_pdf(p0, p1); // * create a mixture pdf of the light source and the cosine-weighted hemisphere
-            
-            // scattered = ray(rec.p, mixed_pdf.generate(), r.time());
-            // pdf_value = mixed_pdf.value(scattered.direction());
-
             auto light_ptr = make_shared<hittable_pdf>(lights, rec.p);
             mixture_pdf p(light_ptr, srec.pdf_ptr);
 
             ray scattered = ray(rec.p, p.generate(), r.time());
             auto pdf_value = p.value(scattered.direction());
 
-
             double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-
-            // ! Deprecated (previous implementation)
-
-            // // * Light sampling
-            // // Randomly pick a point on the light source within specified x and z ranges
-            // auto on_light = point3(random_double(213,343), 554, random_double(227,332));
-
-            // // Calculate the vector from the hit point to the selected point on the light
-            // auto to_light = on_light - rec.p;
-
-            // // Compute the square of the distance between the hit point and the light source
-            // auto distance_squared = to_light.length_squared();
-
-            // // Normalize the 'to_light' vector to get a unit direction vector
-            // to_light = unit_vector(to_light);
-
-            // // Check if the light is facing away from the surface (dot product is negative)
-            // // If the light is facing away, return only the emitted color (no contribution from the light)
-            // if (dot(to_light, rec.normal) < 0)
-            //     return color_from_emission;
-
-            // // Calculate the area of the light source
-            // double light_area = (343-213)*(332-227);
-
-            // // Calculate the cosine of the angle between the light direction and the light's normal (y-axis)
-            // auto light_cosine = std::fabs(to_light.y());
-
-            // // If the cosine is too small, return only the emitted color (light contribution is negligible)
-            // if (light_cosine < 0.000001)
-            //     return color_from_emission;
-
-            // // Compute the PDF value for sampling the light source
-            // pdf_value = distance_squared / (light_cosine * light_area);
-
-            // // Create the scattered ray pointing from the hit point to the light source
-            // scattered = ray(rec.p, to_light, r.time());
-
-            // // Compute the scattering PDF for the scattered ray
-            // double scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
-
-            // * naive implementation
-            // Recursively compute the color from the scattered ray, multiplied by the attenuation factor.
-            // color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
-
-            // * Calculate the scattering PDF value
-            // double scattering_pdf = rec.mat -> scattering_pdf(r, rec, scattered);
-            // pdf_value = scattering_pdf;
-            
-            // * Test: Instead of using the scattering PDF, we use a uniform PDF over the hemisphere.
-            // Instead of using the scattering PDF, we use a uniform PDF over the hemisphere.
-            // This means that we assume equal probability for all directions in the hemisphere.
-            // double pdf_value = 1 / (2*pi);
 
             color sample_color = ray_color(scattered, depth-1, world, lights);
 
@@ -359,50 +292,8 @@ class camera {
             color color_from_scatter = 
                 (srec.attenuation * scattering_pdf * sample_color) / pdf_value;
 
-
             // Return the sum of the emitted color and the scattered color.
             return color_from_emission + color_from_scatter;
-
-            // * uncomment the following code to see previous implementation (skybox as background)
-            // // -------------------------------------------------------------
-            // if (world.hit(r, interval(0.001, infinity), rec)) {
-                
-                /* temporily hide
-                // return 0.5 * (rec.normal + color(1,1,1)); // * normal to color
-                // * random direction on the hemisphere (most basic diffuse material model)
-                // vec3 direction = random_on_hemisphere(rec.normal);
-                
-                // * lanbertian reflectance (more realistic diffuse material model,
-                // * more light is reflected in the direction of the normal)
-                // rec.normal is the center of the hemisphere,
-                //  and random_unit_vector() is the random direction on the hemisphere
-                vec3 direction = rec.normal + random_unit_vector();
-                return 0.7 * // * reflect XX% of the light (color)
-                    ray_color(ray(rec.p, direction), depth - 1, world); // * recursive ray tracing
-                */
-               
-            //     // * scatter the ray
-            //     ray scattered;
-            //     color attenuation;
-            //     // determine if the ray is scattered
-            //     if (rec.mat->scatter(r, rec, attenuation, scattered))
-            //         // if the ray is scattered, return the scattered ray's color,
-            //         // multiply the attenuation
-            //         // it means the ray is scattered, and the color is attenuated
-            //         return attenuation * ray_color(scattered, depth - 1, world);
-            //     // if the ray is not scattered, return black means no light is gathered
-            //     return color(0, 0, 0);
-            // }
-
-
-            // // * if not hit, return the background color
-            // vec3 unit_direction = unit_vector(r.direction());
-            // // scale the y component to [0, 1], unit_direction is in the range of [-1, 1], a is in the range of [0, 1]
-            // auto a = 0.5*(unit_direction.y() + 1.0);
-            // // blendedvalue (or, liner interpolation) of white and blue
-            // // * (1 - a) * white + a * blue
-            // return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
-            // -------------------------------------------------------------
     }
 };
 
