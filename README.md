@@ -1,7 +1,7 @@
-# rtWeave
-Ray-Tracing Renderer.
-Implement from Ray-Tracing in One Weekend Book Series.
-Current: Book3 - the rest of your life, finished.
+![rtWeave_v1.0.0](teaser/banner_01.jpg)
+
+# Weave Renderer 1.0.0
+A Ray-Tracing Renderer. On-going project.
 
 ## TODO
 - parallelization (mutilthreads cpu, cuda, etc.)
