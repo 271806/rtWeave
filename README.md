@@ -4,6 +4,8 @@
 A Ray-Tracing Renderer. On-going personal project.
 Version: v0.1.0
 
+prepare for release...
+
 ## TODO
 - parallelization (mutilthreads cpu, cuda w/ or w/o Optix, etc.)
 - Monte Carlo Intergration (Done)
