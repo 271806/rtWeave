@@ -767,7 +767,7 @@ void hdr_test2() {
     // camera settings
     cam.aspect_ratio      = 1.0;
     cam.image_width       = 800;
-    cam.samples_per_pixel = 700;
+    cam.samples_per_pixel = 10;
     cam.max_depth         = 50;
     cam.background        = color(0,0,0);
 

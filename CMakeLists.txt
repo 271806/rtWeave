@@ -21,10 +21,11 @@ find_package(OpenMP REQUIRED)
 # Find Eigen3 package
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 
-# add executable
-add_executable(raytracing main.cpp)
-add_executable(estimate_halfway math/estimate_halfway.cpp)
-add_executable(sphere_plot math/sphere_plot.cpp)
+# include src directory so no need to change #include paths
+include_directories(${CMAKE_SOURCE_DIR}/src)
+
+# add executable with source files in the src directory
+add_executable(raytracing src/main.cpp)
 
 # link libigl to your raytracing executable
 target_link_libraries(raytracing PUBLIC igl::core)
