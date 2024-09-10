@@ -1,19 +1,17 @@
 ![rtWeave_v1.0.0](teaser/banner_01.jpg)
 
-# Weave Renderer 1.0.0
-A Ray-Tracing Renderer. On-going project.
+# Weave Renderer 0.1.0
+A Ray-Tracing Renderer. On-going personal project.
+Version: v0.1.0
 
 ## TODO
-- parallelization (mutilthreads cpu, cuda, etc.)
+- parallelization (mutilthreads cpu, cuda w/ or w/o Optix, etc.)
 - Monte Carlo Intergration (Done)
 - Importance Sampling (Done)
 - Light Scattering (Done)
 - PDF (Done)
-- add BRDF model
-- update quad to includes more shape
-- add feature: input triangle meshes (Done)
-- add directional light
-- HDR map, skybox
-
-
-- save point 01: right after book3's implementation
+- BRDF model
+- triangle meshes (Done)
+- directional light (Done)
+- HDR map, skybox (Done)
+- HDR map with importance sampling
