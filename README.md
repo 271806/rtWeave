@@ -1,10 +1,10 @@
-![rtWeave_v1.0.0](teaser/banner_01.jpg)
+![rtWeave_v0.1.0](teaser/banner_01.jpg)
 
 # Weave Renderer 0.1.0
 A Ray-Tracing Renderer. On-going personal project.
-Version: v0.1.0
 
-prepare for release...
+
+Release version: v0.1.0
 
 ## TODO
 - parallelization (mutilthreads cpu, cuda w/ or w/o Optix, etc.)
