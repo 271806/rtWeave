@@ -782,9 +782,11 @@ void hdr_test2() {
     std::string hdr_path = "hdr_map/rosendal_plains_2_4k.hdr";  // 替换为你的 HDR 文件路径
     cam.background_texture = std::make_shared<hdr_texture>(hdr_path);
 
+    double gamma_value = 4.4;
+
     // 渲染场景
     cam.render(world, lights);
-    // cam.render_png(world, lights, "output/hdr_test2.png");
+    // cam.render_png(world, lights, "output/hdr_test2.png", gamma_value);
 }
 
 int main() {

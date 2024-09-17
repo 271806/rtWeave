@@ -5,6 +5,9 @@
 #include "vec3.h"
 #include "rtweekend.h"
 
+#include <algorithm> // std::clamp
+
+
 using color = vec3;
 
 // * gamma correction (gamma 2)
@@ -14,6 +17,14 @@ inline double linear_to_gamma(double linear_component) {
 
     return 0;
 }
+
+inline double linear_to_gamma_adjustable(double linear_component, double gamma) {
+    if (linear_component > 0)
+        return pow(linear_component, 1.0 / gamma);  // 应用可调的gamma值
+
+    return 0;
+}
+
 
 // define a function that writes the color values to the output stream
 void write_color(std::ostream& out, const color& pixel_color) {
@@ -43,5 +54,22 @@ void write_color(std::ostream& out, const color& pixel_color) {
     // output the color values to the output stream (usually a file or standard output)
     out << rbyte << " " << gbyte << " " << bbyte << "\n";
 }
+
+
+void write_color_png(unsigned char* pixel_data, int index, color pixel_color, int samples_per_pixel, double gamma) {
+    // Apply adjustable gamma correction for each color component
+    auto scale = 1.0 / samples_per_pixel;
+    auto r = pow(pixel_color.x() * scale, 1.0 / gamma);
+    auto g = pow(pixel_color.y() * scale, 1.0 / gamma);
+    auto b = pow(pixel_color.z() * scale, 1.0 / gamma);
+
+    // Clamp and convert to byte
+    pixel_data[index] = static_cast<int>(256 * std::clamp(r, 0.0, 0.999));
+    pixel_data[index + 1] = static_cast<int>(256 * std::clamp(g, 0.0, 0.999));
+    pixel_data[index + 2] = static_cast<int>(256 * std::clamp(b, 0.0, 0.999));
+}
+
+
+
 
 #endif

@@ -134,7 +134,7 @@ class camera {
             std::clog << "\nDone.                 \n";
         }
 
-        void render_png(const hittable& world, const hittable& lights, const std::string& output_filename) {
+        void render_png(const hittable& world, const hittable& lights, const std::string& output_filename, double gamma_value) {
             initialize();
 
             // Create an array to store pixel colors
@@ -153,14 +153,7 @@ class camera {
                         }
                     }
 
-                    // Scale the accumulated color
-                    pixel_color *= pixel_samples_scale;
-
-                    // Clamp the values between 0 and 1, then map to [0, 255]
-                    int idx = (j * image_width + i) * 3;
-                    image_data[idx]     = static_cast<unsigned char>(256 * clamp(pixel_color.x(), 0.0, 0.999));
-                    image_data[idx + 1] = static_cast<unsigned char>(256 * clamp(pixel_color.y(), 0.0, 0.999));
-                    image_data[idx + 2] = static_cast<unsigned char>(256 * clamp(pixel_color.z(), 0.0, 0.999));
+                    write_color_png(image_data, 3 * (j * image_width + i), pixel_samples_scale * pixel_color, samples_per_pixel, gamma_value);
                 }
             }
 
