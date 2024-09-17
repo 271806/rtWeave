@@ -784,6 +784,7 @@ void hdr_test2() {
 
     // 渲染场景
     cam.render(world, lights);
+    // cam.render_png(world, lights, "output/hdr_test2.png");
 }
 
 int main() {

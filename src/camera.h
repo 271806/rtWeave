@@ -9,6 +9,9 @@
 #include "vec3.h"
 #include "hdr_texture.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../ext/stb_image_write.h"
+
 #include <omp.h> // Include OpenMP header for multithreading support
 
 // camera class
@@ -129,6 +132,45 @@ class camera {
             }
 
             std::clog << "\nDone.                 \n";
+        }
+
+        void render_png(const hittable& world, const hittable& lights, const std::string& output_filename) {
+            initialize();
+
+            // Create an array to store pixel colors
+            unsigned char* image_data = new unsigned char[image_width * image_height * 3];
+
+            for (int j = 0; j < image_height; j++) {
+                std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+                for (int i = 0; i < image_width; i++) {
+                    color pixel_color(0, 0, 0); // initialize the pixel color as black
+
+                    // Stratified sampling
+                    for (int s_j = 0; s_j < sqrt_spp; s_j++) {
+                        for (int s_i = 0; s_i < sqrt_spp; s_i++) {
+                            ray r = get_ray(i, j, s_i, s_j);
+                            pixel_color += ray_color(r, max_depth, world, lights);
+                        }
+                    }
+
+                    // Scale the accumulated color
+                    pixel_color *= pixel_samples_scale;
+
+                    // Clamp the values between 0 and 1, then map to [0, 255]
+                    int idx = (j * image_width + i) * 3;
+                    image_data[idx]     = static_cast<unsigned char>(256 * clamp(pixel_color.x(), 0.0, 0.999));
+                    image_data[idx + 1] = static_cast<unsigned char>(256 * clamp(pixel_color.y(), 0.0, 0.999));
+                    image_data[idx + 2] = static_cast<unsigned char>(256 * clamp(pixel_color.z(), 0.0, 0.999));
+                }
+            }
+
+            // Use stb_image_write to write the image to a PNG file
+            stbi_write_png(output_filename.c_str(), image_width, image_height, 3, image_data, image_width * 3);
+
+            // Clean up the allocated memory
+            delete[] image_data;
+
+            std::clog << "\nDone.\n";
         }
 
 
