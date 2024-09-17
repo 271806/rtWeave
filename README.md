@@ -1,6 +1,6 @@
 ![rtWeave_v0.1.0](teaser/teaser01.png)
 
-# Weave Renderer 0.1.0
+# Weave Renderer 0.1.1
 A Ray-Tracing Renderer. On-going personal project.
 
 
