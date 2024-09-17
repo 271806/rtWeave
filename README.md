@@ -1,6 +1,6 @@
 ![rtWeave_v0.1.0](teaser/teaser01.png)
 
-# Weave Renderer 0.1.1
+# Weave Renderer 0.1.2
 A Ray-Tracing Renderer. On-going personal project.
 
 
@@ -17,3 +17,5 @@ Release version: v0.1.1
 - triangle meshes (Done)
 - directional light (Done)
 - HDR map, skybox (Done)
+- PNG output
+- adjustable gamma correction
