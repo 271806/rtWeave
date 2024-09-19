@@ -1,5 +1,6 @@
 /build/
 /.vscode/
 /hdr_map/*
+/scenes/*
 /assets/*
 !/assets/tree5.obj
