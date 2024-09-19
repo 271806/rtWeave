@@ -19,6 +19,7 @@ Release version: v0.1.1
 - HDR map, skybox (Done)
 - PNG output
 - adjustable gamma correction
+- multiple mesh import
 
 
 
