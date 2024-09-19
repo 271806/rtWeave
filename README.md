@@ -19,3 +19,8 @@ Release version: v0.1.1
 - HDR map, skybox (Done)
 - PNG output
 - adjustable gamma correction
+
+
+
+## Warnings
+Use GCC instead of Clang in this project.
