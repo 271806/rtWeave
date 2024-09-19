@@ -9,7 +9,7 @@ Release version: v0.1.1
 ## TODO
 - parallelization (mutilthreads cpu, cuda w/ or w/o Optix, etc.)
 - HDR map with importance sampling
-- BRDF model
+- BRDF/BSDF model
 - Monte Carlo Intergration (Done)
 - Importance Sampling (Done)
 - Light Scattering (Done)
