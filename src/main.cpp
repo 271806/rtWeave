@@ -738,7 +738,7 @@ void hdr_test2() {
     Eigen::MatrixXi F;  // 面矩阵
 
 
-    std::string obj_file_path = "assets/tree5.obj";  // 替换为你的 OBJ 文件路径
+    std::string obj_file_path = "assets/bg8.obj";  // 替换为你的 OBJ 文件路径
     if (!igl::readOBJ(obj_file_path, V, F)) {
         std::cerr << "Failed to load OBJ file." << std::endl;
         return;
@@ -789,6 +789,91 @@ void hdr_test2() {
     // cam.render_png(world, lights, "output/hdr_test2.png", gamma_value);
 }
 
+void banner() {
+    hittable_list world;
+    hittable_list lights;
+
+    // 材质定义
+    shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.1);  // 金属材质
+    shared_ptr<material> diffuse_tree = make_shared<lambertian>(color(0.2, 0.8, 0.2)); // 树的漫反射材质
+
+    // 导入第一个 OBJ 网格 (树)
+    Eigen::MatrixXd V_tree;
+    Eigen::MatrixXi F_tree;
+    std::string obj_file_path_tree = "assets/bg8.obj";  // 替换为你的树 OBJ 文件路径
+    if (!igl::readOBJ(obj_file_path_tree, V_tree, F_tree)) {
+        std::cerr << "Failed to load tree OBJ file." << std::endl;
+        return;
+    }
+
+    // 导入第二个 OBJ 网格 (铝)
+    Eigen::MatrixXd V_metal;
+    Eigen::MatrixXi F_metal;
+    std::string obj_file_path_metal = "assets/tree5.obj";  // 替换为你的金属 OBJ 文件路径
+    if (!igl::readOBJ(obj_file_path_metal, V_metal, F_metal)) {
+        std::cerr << "Failed to load metal OBJ file." << std::endl;
+        return;
+    }
+
+    // 添加第一个 OBJ 网格 (树)
+    for (int i = 0; i < F_tree.rows(); ++i) {
+        vec3 translation(278, 10, 278);  // 可以根据需要调整位置
+        double scale_factor = 4;          // 调整比例
+
+        // 读取三角形的顶点
+        vec3 v0 = scale_factor * vec3(V_tree(F_tree(i, 0), 0), V_tree(F_tree(i, 0), 1), V_tree(F_tree(i, 0), 2)) + translation;
+        vec3 v1 = scale_factor * vec3(V_tree(F_tree(i, 1), 0), V_tree(F_tree(i, 1), 1), V_tree(F_tree(i, 1), 2)) + translation;
+        vec3 v2 = scale_factor * vec3(V_tree(F_tree(i, 2), 0), V_tree(F_tree(i, 2), 1), V_tree(F_tree(i, 2), 2)) + translation;
+
+        // 使用漫反射材质 (树材质)
+        auto triangle = make_shared<Triangle>(v0, v1, v2, diffuse_tree);
+        world.add(triangle);
+    }
+
+    // 添加第二个 OBJ 网格 (铝)
+    for (int i = 0; i < F_metal.rows(); ++i) {
+        vec3 translation(150, 20, 150);  // 不同位置的平移
+        double scale_factor = 4;           // 调整比例
+
+        // 读取三角形的顶点
+        vec3 v0 = scale_factor * vec3(V_metal(F_metal(i, 0), 0), V_metal(F_metal(i, 0), 1), V_metal(F_metal(i, 0), 2)) + translation;
+        vec3 v1 = scale_factor * vec3(V_metal(F_metal(i, 1), 0), V_metal(F_metal(i, 1), 1), V_metal(F_metal(i, 1), 2)) + translation;
+        vec3 v2 = scale_factor * vec3(V_metal(F_metal(i, 2), 0), V_metal(F_metal(i, 2), 1), V_metal(F_metal(i, 2), 2)) + translation;
+
+        // 使用金属材质
+        auto triangle = make_shared<Triangle>(v0, v1, v2, aluminum);
+        world.add(triangle);
+    }
+
+    // 创建相机
+    camera cam;
+
+    // camera settings
+    cam.aspect_ratio      = 1.0;
+    cam.image_width       = 800;
+    cam.samples_per_pixel = 10;
+    cam.max_depth         = 50;
+    cam.background        = color(0,0,0);
+
+    cam.vfov     = 40;
+    cam.lookfrom = point3(278, 278, -800);
+    cam.lookat   = point3(278, 278, 0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
+
+    // 加载 HDR 环境贴图
+    std::string hdr_path = "hdr_map/rosendal_plains_2_4k.hdr";  // 替换为你的 HDR 文件路径
+    cam.background_texture = std::make_shared<hdr_texture>(hdr_path);
+
+    double gamma_value = 4.4;
+
+    // 渲染场景
+    cam.render(world, lights);
+    // cam.render_png(world, lights, "output/hdr_test2.png", gamma_value);
+}
+
+
 int main() {
     // * start time record
     auto start = std::chrono::high_resolution_clock::now();
@@ -808,6 +893,7 @@ int main() {
         case 11: triobj_test(); break;
         case 12: hdr_test(); break;
         case 13: hdr_test2(); break;
+        case 14: banner(); break;
         default: final_scene(400, 250, 4); break;
     }
 
