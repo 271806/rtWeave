@@ -25,3 +25,21 @@ Release version: v0.1.1
 
 ## Warnings
 Use GCC instead of Clang in this project.
+
+## Quick Start
+```bash
+$ git clone https://github.com/271806/rtWeave.git
+```
+
+
+NOTE: Use Release Mode for faster experience
+```bash
+$ cmake -B build/Release -DCMAKE_BUILD_TYPE=Release
+$ cmake --build build/Release
+$ build/Release/raytracing > output/image.ppm
+```
+
+
+## About
+
+This project was created by Yinfei Qian.
