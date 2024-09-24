@@ -43,3 +43,4 @@ $ build/Release/raytracing > output/image.ppm
 ## About
 
 This project was created by Yinfei Qian.
+From August 2024.
