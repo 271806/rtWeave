@@ -24,9 +24,13 @@ Release version: v0.1.1
 
 
 ## Warnings
-Use GCC instead of Clang in this project.
+Use GCC instead of Clang to complie this project.
 
 ## Quick Start
+Install Dependencies:
+
+(placeholder)
+
 ```bash
 $ git clone https://github.com/271806/rtWeave.git
 ```
@@ -42,5 +46,5 @@ $ build/Release/raytracing > output/image.ppm
 
 ## About
 
-This project was created by Yinfei Qian.
+This project was created by Yinfei Qian. (website)
 From August 2024.
