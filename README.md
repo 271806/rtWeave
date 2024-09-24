@@ -32,16 +32,9 @@ Install Dependencies:
 (placeholder)
 
 
-
-
 ```bash
 $ git clone https://github.com/271806/rtWeave.git
 ```
-
-
-
-
-
 
 
 NOTE: Use Release Mode for faster experience
@@ -50,11 +43,6 @@ $ cmake -B build/Release -DCMAKE_BUILD_TYPE=Release
 $ cmake --build build/Release
 $ build/Release/raytracing > output/image.ppm
 ```
-
-
-
-
-
 
 
 ## About
