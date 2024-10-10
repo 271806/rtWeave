@@ -2,7 +2,7 @@
 
 # Weave Renderer 0.1.2
 A Ray-Tracing Renderer. On-going personal project.
-
+By Yinfei Qian.
 
 Release version: v0.1.1
 
