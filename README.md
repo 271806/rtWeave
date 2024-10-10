@@ -22,14 +22,6 @@ Release version: v0.1.1
 - multiple mesh import
 
    
-  
-
-
-
-
-
-  
-
 
 ## Warnings
 Use GCC instead of Clang to complie this project.
