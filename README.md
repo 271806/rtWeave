@@ -21,7 +21,7 @@ Release version: v0.1.1
 - adjustable gamma correction
 - multiple mesh import
 
-   
+
 
 ## Warnings
 Use GCC instead of Clang to complie this project.
