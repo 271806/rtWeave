@@ -50,3 +50,4 @@ $ build/Release/raytracing > output/image.ppm
 This project was created by Yinfei Qian. (website)
 From August 2024.
 2229
+need to be organized before early Nov.
