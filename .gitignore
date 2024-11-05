@@ -1,4 +1,6 @@
 /build/
+/output/*
+/output_original/
 /.vscode/
 /hdr_map/*
 /scenes/*

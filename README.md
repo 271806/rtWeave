@@ -1,12 +1,11 @@
 ![rtWeave_v0.1.0](teaser/teaser01.png)
 
 # Weave Renderer 0.1.2
-A Ray-Tracing Renderer. On-going personal project.
-By Yinfei Qian.
+A Personal use 'toy' Ray-Tracing Renderer.
 
-Release version: v0.1.1
+On-going personal project. By Yinfei Qian.
 
-## TODO
+## TODOs
 - parallelization (mutilthreads cpu, cuda w/ or w/o Optix, etc.)
 - HDR map with importance sampling
 - BRDF/BSDF model
