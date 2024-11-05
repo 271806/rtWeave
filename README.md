@@ -66,7 +66,7 @@ $ build/Release/raytracing > output/image.ppm
     title = {Weave Renderer},
     author = {Yinfei Qian},
     note = {https://github.com/271806/rtWeave.git},
-    version = {0.2.0},
+    version = {0.2.1},
     year = 2024
 }
 ```
