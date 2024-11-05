@@ -1,0 +1,31 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 配置 CMake 构建
+    - name: Configure CMake
+      run: cmake -B build/Release -DCMAKE_BUILD_TYPE=Release
+
+    # 执行构建
+    - name: Build with CMake
+      run: cmake --build build/Release
+
+    # 创建 output 文件夹（如果不存在）
+    - name: Create output directory
+      run: mkdir -p output
+
+    # 运行程序并生成输出图像
+    - name: Run executable
+      run: build/Release/raytracing > output/image.ppm
