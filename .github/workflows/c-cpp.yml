@@ -13,9 +13,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: true  # 确保在拉取代码时自动初始化子模块
 
+    # 安装 Eigen3 依赖
+    - name: Install dependencies
+      run: sudo apt-get install -y libeigen3-dev
+
+    - name: List files in ext/libigl
+      run: ls ext/libigl
+
+
+    # 配置 CMake 构建
     - name: Configure CMake
-      run: cmake -B build/Release -DCMAKE_BUILD_TYPE=Release
+      run: |
+        cmake -B build/Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/include/eigen3
 
+    # 执行构建
     - name: Build with CMake
       run: cmake --build build/Release
