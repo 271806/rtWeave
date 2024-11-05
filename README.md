@@ -1,35 +1,45 @@
 ![rtWeave_v0.1.0](teaser/teaser01.png)
 
 # Weave Renderer 0.1.2
-A Personal use 'toy' Ray-Tracing Renderer.
+A personal "toy" ray-tracing renderer developed as an ongoing project by Yinfei Qian.
 
-On-going personal project. By Yinfei Qian.
-
-## TODOs
-- parallelization (mutilthreads cpu, cuda w/ or w/o Optix, etc.)
-- HDR map with importance sampling
-- BRDF/BSDF model
-- Monte Carlo Intergration (Done)
-- Importance Sampling (Done)
-- Light Scattering (Done)
-- PDF (Done)
-- triangle meshes (Done)
-- directional light (Done)
-- HDR map, skybox (Done)
-- PNG output
-- adjustable gamma correction
-- multiple mesh import
+---
+![Build Status](https://github.com/271806/rtWeave/actions/workflows/c-cpp.yml/badge.svg)
 
 
+## Table of Contents
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [TODOs](#todos)
+- [Warnings](#warnings)
+- [License](#license)
+- [About](#about)
+
+---
 
 ## Warnings
 Use GCC instead of Clang to complie this project.
 
+## Introduction
+Weave Renderer is a personal project aimed at building a ray-tracing renderer for educational and experimental purposes. This project allows the exploration and implementation of various rendering techniques, such as Monte Carlo integration, importance sampling, and light scattering. It is ideal for users who wish to learn the fundamentals of ray tracing.
+
+## Features
+- **Monte Carlo Integration** ✔️
+- **Importance Sampling** ✔️
+- **Light Scattering** ✔️
+- **PDF Calculation** ✔️
+- **Triangle Meshes** ✔️
+- **Directional Light** ✔️
+- **HDR Map and Skybox** ✔️
+- **PNG Output** (planned)
+- **Adjustable Gamma Correction** (planned)
+- **Multiple Mesh Import** (planned)
+- **Accerlation via Optix, cuda** (planned)
+
+
 ## Quick Start
-Install Dependencies:
-
-(placeholder)
-
 
 ```bash
 $ git clone https://github.com/271806/rtWeave.git
