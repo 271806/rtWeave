@@ -6,6 +6,13 @@ A personal "toy" ray-tracing renderer developed as an ongoing project by Yinfei 
 ---
 ![Build Status](https://github.com/271806/rtWeave/actions/workflows/c-cpp.yml/badge.svg)
 
+| Linux             | 
+|       :---:       |
+|[![Build Status][1]][2]|
+
+[1]: https://github.com/271806/rtWeave/actions/workflows/c-cpp.yml/badge.svg
+[2]: https://github.com/271806/rtWeave/actions/runs/11682655845
+
 
 ## Table of Contents
 - [Introduction](#introduction)
