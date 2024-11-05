@@ -2,10 +2,11 @@
 
 # Weave Renderer 0.1.2
 A personal "toy" ray-tracing renderer developed as an ongoing project by Yinfei Qian.
+Reference:
+- [rt-in-one-weekend](https://raytracing.github.io/) books 1-3
+- [PBRT](https://www.pbrt.org/)(book)
 
 ---
-![Build Status](https://github.com/271806/rtWeave/actions/workflows/c-cpp.yml/badge.svg)
-
 | Linux             | 
 |       :---:       |
 |[![Build Status][1]][2]|
