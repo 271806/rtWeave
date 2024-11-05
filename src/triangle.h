@@ -48,7 +48,7 @@ bool Triangle::hit(const ray& r, interval ray_t, hit_record& rec) const {
     return false;
 }
 
-// 实现 bounding_box 函数
+// bounding_box
 aabb Triangle::bounding_box() const {
     vec3 min_point(
         std::fmin(v0.x(), std::fmin(v1.x(), v2.x())),
@@ -62,7 +62,7 @@ aabb Triangle::bounding_box() const {
         std::fmax(v0.z(), std::fmax(v1.z(), v2.z()))
     );
 
-    return aabb(min_point, max_point);  // 使用最小和最大点来构建包围盒
+    return aabb(min_point, max_point);  // Use the minimum and maximum points to construct the bounding box
 }
 
 #endif

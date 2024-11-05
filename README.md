@@ -1,6 +1,6 @@
 ![rtWeave_v0.1.0](teaser/teaser01.png)
 
-# Weave Renderer 0.1.2
+# Weave Renderer (pre-release)
 A personal "toy" ray-tracing renderer developed as an ongoing project by Yinfei Qian.
 
 
