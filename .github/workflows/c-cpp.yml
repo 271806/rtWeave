@@ -14,10 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # 配置 CMake 构建
     - name: Configure CMake
       run: cmake -B build/Release -DCMAKE_BUILD_TYPE=Release
 
-    # 执行构建
     - name: Build with CMake
       run: cmake --build build/Release
