@@ -31,17 +31,7 @@ Weave Renderer is a personal project aimed at building a ray-tracing renderer fo
 
 
 ## Features
-- **Monte Carlo Integration** ✔️
-- **Importance Sampling** ✔️
-- **Light Scattering** ✔️
-- **PDF Calculation** ✔️
-- **Triangle Meshes** ✔️
-- **Directional Light** ✔️
-- **HDR Map and Skybox** ✔️
-- **PNG Output** (planned)
-- **Adjustable Gamma Correction** (planned)
-- **Multiple Mesh Import** (planned)
-- **Accerlation via Optix, cuda** (planned)
+- To be organized
 
 
 ## Quick Start
